@@ -1,0 +1,56 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Phụ lục này đặc tả thêm hai use case không được trình bày chi tiết trong Chương \ref{chapter:Related_works} do giới hạn dung lượng, nhưng vẫn là các chức năng quan trọng của hệ thống NihongoFlow.
+
+\section{Đặc tả use case ``Xem tổng quan tiến độ và streak học tập''}
+
+\textbf{Tác nhân:} Học viên.
+
+\textbf{Mô tả:} Học viên xem trang Dashboard, hiển thị tiến độ hoàn thành của từng khóa học đã đăng ký, chuỗi ngày học liên tục hiện tại (streak) và chuỗi dài nhất từng đạt được (longest streak), cùng lịch sử các lượt làm quiz gần đây.
+
+\textbf{Tiền điều kiện:} Học viên đã đăng nhập.
+
+\textbf{Hậu điều kiện:} Không thay đổi dữ liệu hệ thống (use case chỉ đọc).
+
+\textbf{Luồng sự kiện chính:}
+\begin{enumerate}
+    \item Học viên truy cập trang \texttt{/dashboard}.
+    \item Hệ thống gọi đồng thời các API: danh sách khóa học đã đăng ký kèm phần trăm hoàn thành (\texttt{completedLessons / totalLessons}), thông tin streak hiện tại và streak dài nhất, và danh sách các lượt làm quiz gần đây nhất.
+    \item Hệ thống hiển thị: thẻ thống kê streak (hiện tại/dài nhất), danh sách khóa học đang học kèm thanh tiến độ, và bảng lịch sử làm quiz (tên bài học, điểm số, ngày làm bài, trạng thái đạt/không đạt).
+    \item Học viên nhấp vào một lượt làm quiz trong lịch sử.
+    \item Hệ thống gọi \texttt{GET /api/v1/users/me/quiz-attempts/:id} và mở \texttt{AttemptReviewModal}, hiển thị toàn bộ 10 câu hỏi của lượt làm bài đó, nhóm theo loại câu hỏi (VOCABULARY/CONTENT/SEQUENCE), tô màu xanh cho đáp án đúng và màu đỏ cho đáp án học viên đã chọn sai.
+\end{enumerate}
+
+\textbf{Luồng rẽ nhánh:}
+\begin{itemize}
+    \item Nếu học viên chưa đăng ký khóa học nào, danh sách khóa học hiển thị trạng thái rỗng kèm thông báo gợi ý khám phá khóa học (không hiển thị khoảng trắng).
+    \item Nếu chuỗi ngày học bị gián đoạn quá 24 giờ kể từ \texttt{lastActivityDate}, \texttt{currentStreak} được tính lại bằng 0 ở phía server trước khi trả về cho frontend.
+\end{itemize}
+
+\section{Đặc tả use case ``Ẩn/hiện khóa học'' (Quản trị viên)}
+
+\textbf{Tác nhân:} Quản trị viên.
+
+\textbf{Mô tả:} Quản trị viên có thể ẩn một khóa học khỏi danh sách khóa học hiển thị cho học viên (ví dụ khi nội dung chưa hoàn thiện), hoặc hiện lại một khóa học đã ẩn trước đó, mà không cần xóa dữ liệu khóa học.
+
+\textbf{Tiền điều kiện:} Người dùng đã đăng nhập với vai trò \texttt{ADMIN}; khóa học cần thao tác đã tồn tại.
+
+\textbf{Hậu điều kiện:} Trường \texttt{Course.hidden} của khóa học được đảo trạng thái (\texttt{true} \(\leftrightarrow\) \texttt{false}); nếu \texttt{hidden = true}, khóa học không xuất hiện trong danh sách khóa học và không thể truy cập trực tiếp bởi học viên (kể cả khi biết đường dẫn).
+
+\textbf{Luồng sự kiện chính:}
+\begin{enumerate}
+    \item Quản trị viên truy cập trang \texttt{/admin/khoa-hoc}, xem bảng danh sách khóa học kèm cột trạng thái hiển thị.
+    \item Quản trị viên nhấp nút ẩn/hiện tương ứng với một khóa học.
+    \item Frontend gọi \texttt{PATCH /api/v1/admin/courses/:id} với trường \texttt{hidden} đảo ngược giá trị hiện tại.
+    \item Backend (\texttt{AdminCourseService}) cập nhật bản ghi \texttt{Course} và trả về DTO đã cập nhật.
+    \item Frontend cập nhật lại danh sách khóa học (invalidate cache TanStack Query) và hiển thị trạng thái mới trong bảng.
+\end{enumerate}
+
+\textbf{Luồng rẽ nhánh:}
+\begin{itemize}
+    \item Nếu một học viên đã đăng ký khóa học trước khi khóa học bị ẩn, học viên đó \textbf{vẫn được tiếp tục truy cập} các bài học đã đăng ký -- cờ \texttt{hidden} chỉ ảnh hưởng tới việc khóa học có xuất hiện trong danh sách/khám phá khóa học mới hay không, được kiểm tra ở \texttt{CourseService.getCourse} và \texttt{getLessons} đối với vai trò \texttt{STUDENT}.
+    \item Quản trị viên (vai trò \texttt{ADMIN}) luôn nhìn thấy và truy cập được khóa học bất kể trạng thái \texttt{hidden}.
+\end{itemize}
+
+\end{document}

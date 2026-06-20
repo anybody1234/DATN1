@@ -1,0 +1,9 @@
+package com.nihongoflow.repository;
+
+import com.nihongoflow.entity.Question;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface QuestionRepository extends JpaRepository<Question, Long> {
+    List<Question> findByQuizIdOrderByOrderIndexAsc(Long quizId);
+}

@@ -1,0 +1,486 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{none/global//global/global/global}
+  \entry{japanfoundation2021}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{The Japan Foundation}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T2}
+    \strng{fullhash}{T2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Survey Report on Japanese-Language Education Abroad 2021}
+    \verb{url}
+    \verb https://www.jpf.go.jp/e/project/japanese/survey/result/survey21.html
+    \endverb
+    \field{year}{2021}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{jetro2023}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=J}{%
+         family={{Japan External Trade Organization (JETRO)}},
+         familyi={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{J1}
+    \strng{fullhash}{J1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Survey on Business Conditions of Japanese-Affiliated
+  Companies in Asia and Oceania}
+    \verb{url}
+    \verb https://www.jetro.go.jp/en/news/survey/
+    \endverb
+    \field{year}{2023}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{roediger2006}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=RHL}{%
+         family={Roediger},
+         familyi={R\bibinitperiod},
+         given={Henry\bibnamedelima L.},
+         giveni={H\bibinitperiod\bibinitdelim L\bibinitperiod},
+      }}%
+      {{hash=KJD}{%
+         family={Karpicke},
+         familyi={K\bibinitperiod},
+         given={Jeffrey\bibnamedelima D.},
+         giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {SAGE Publications}%
+    }
+    \strng{namehash}{RHLKJD1}
+    \strng{fullhash}{RHLKJD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{3}
+    \field{pages}{249\bibrangedash 255}
+    \field{title}{Test-enhanced learning: Taking memory tests improves
+  long-term retention}
+    \field{volume}{17}
+    \field{journaltitle}{Psychological Science}
+    \field{year}{2006}
+  \endentry
+
+  \entry{fielding2000rest}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=FRT}{%
+         family={Fielding},
+         familyi={F\bibinitperiod},
+         given={Roy\bibnamedelima Thomas},
+         giveni={R\bibinitperiod\bibinitdelim T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{FRT1}
+    \strng{fullhash}{FRT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{howpublished}{PhD dissertation, University of California, Irvine}
+    \field{title}{Architectural Styles and the Design of Network-based Software
+  Architectures}
+    \verb{url}
+    \verb https://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm
+    \endverb
+    \field{year}{2000}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{springboot}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=V}{%
+         family={{VMware (Spring Team)}},
+         familyi={V\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{V1}
+    \strng{fullhash}{V1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Spring Boot Reference Documentation}
+    \verb{url}
+    \verb https://docs.spring.io/spring-boot/docs/current/reference/html/
+    \endverb
+    \field{year}{2024}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{jwtrfc7519}{misc}{}{}
+    \name{author}{3}{}{%
+      {{hash=JMB}{%
+         family={Jones},
+         familyi={J\bibinitperiod},
+         given={Michael\bibnamedelima B.},
+         giveni={M\bibinitperiod\bibinitdelim B\bibinitperiod},
+      }}%
+      {{hash=BJ}{%
+         family={Bradley},
+         familyi={B\bibinitperiod},
+         given={John},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=SN}{%
+         family={Sakimura},
+         familyi={S\bibinitperiod},
+         given={Nat},
+         giveni={N\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{JMB+1}
+    \strng{fullhash}{JMBBJSN1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{howpublished}{Internet Engineering Task Force (IETF)}
+    \field{title}{{RFC 7519}: {JSON} Web Token ({JWT})}
+    \verb{url}
+    \verb https://www.rfc-editor.org/rfc/rfc7519
+    \endverb
+    \field{year}{2015}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{mysqldocs}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=O}{%
+         family={{Oracle Corporation}},
+         familyi={O\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{O1}
+    \strng{fullhash}{O1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{MySQL 8.0 Reference Manual}
+    \verb{url}
+    \verb https://dev.mysql.com/doc/refman/8.0/en/
+    \endverb
+    \field{year}{2024}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{reactdocs}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=M}{%
+         family={{Meta Platforms, Inc.}},
+         familyi={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{M1}
+    \strng{fullhash}{M1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{React Documentation}
+    \verb{url}
+    \verb https://react.dev/
+    \endverb
+    \field{year}{2024}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{tailwindcss}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{Tailwind Labs Inc.}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T1}
+    \strng{fullhash}{T1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Tailwind CSS Documentation}
+    \verb{url}
+    \verb https://tailwindcss.com/docs
+    \endverb
+    \field{year}{2024}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{youtubeapi}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=G}{%
+         family={{Google LLC}},
+         familyi={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{G1}
+    \strng{fullhash}{G1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{{YouTube} {IFrame} Player {API} Reference}
+    \verb{url}
+    \verb https://developers.google.com/youtube/iframe_api_reference
+    \endverb
+    \field{year}{2024}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{vnpaydocs}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=V}{%
+         family={{VNPAY}},
+         familyi={V\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{V2}
+    \strng{fullhash}{V2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Tài liệu tích hợp cổng thanh toán {VNPAY}}
+    \verb{url}
+    \verb https://sandbox.vnpayment.vn/apis/docs/
+    \endverb
+    \field{year}{2024}
+    \field{urlday}{01}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{hovy1993automated}{article}{}{}
+    \name{author}{1}{}{%
+      {{hash=HEH}{%
+         family={Hovy},
+         familyi={H\bibinitperiod},
+         given={Eduard\bibnamedelima H.},
+         giveni={E\bibinitperiod\bibinitdelim H\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HEH1}
+    \strng{fullhash}{HEH1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{1-2}
+    \field{pages}{341\bibrangedash 385}
+    \field{title}{Automated discourse generation using discourse structure
+  relations}
+    \field{volume}{63}
+    \field{journaltitle}{Artificial Intelligence}
+    \field{year}{1993}
+  \endentry
+
+  \entry{peterson2007computer}{book}{}{}
+    \name{author}{2}{}{%
+      {{hash=PLL}{%
+         family={Peterson},
+         familyi={P\bibinitperiod},
+         given={Larry\bibnamedelima L.},
+         giveni={L\bibinitperiod\bibinitdelim L\bibinitperiod},
+      }}%
+      {{hash=DBS}{%
+         family={Davie},
+         familyi={D\bibinitperiod},
+         given={Bruce\bibnamedelima S.},
+         giveni={B\bibinitperiod\bibinitdelim S\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Elsevier}%
+    }
+    \strng{namehash}{PLLDBS1}
+    \strng{fullhash}{PLLDBS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Computer Networks: A Systems Approach}
+    \field{year}{2007}
+  \endentry
+
+  \entry{NguyenThucHai}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=NTH}{%
+         family={Nguyễn},
+         familyi={N\bibinitperiod},
+         given={Thúc\bibnamedelima Hải},
+         giveni={T\bibinitperiod\bibinitdelim H\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Nhà xuất bản Giáo dục}%
+    }
+    \strng{namehash}{NTH1}
+    \strng{fullhash}{NTH1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Mạng máy tính và các hệ thống mở}
+    \field{year}{1999}
+  \endentry
+
+  \entry{poesio2001discourse}{inproceedings}{}{}
+    \name{author}{2}{}{%
+      {{hash=PM}{%
+         family={Poesio},
+         familyi={P\bibinitperiod},
+         given={Massimo},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=DEB}{%
+         family={Di\bibnamedelima Eugenio},
+         familyi={D\bibinitperiod\bibinitdelim E\bibinitperiod},
+         given={Barbara},
+         giveni={B\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{PMDEB1}
+    \strng{fullhash}{PMDEB1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{ESSLLI Workshop on Information Structure, Discourse
+  Structure and Discourse Semantics}
+    \field{pages}{129\bibrangedash 143}
+    \field{title}{Discourse structure and anaphoric accessibility}
+    \list{location}{1}{%
+      {Copenhagen, Denmark}%
+    }
+    \field{year}{2001}
+  \endentry
+
+  \entry{knott1996data}{thesis}{}{}
+    \name{author}{1}{}{%
+      {{hash=KA}{%
+         family={Knott},
+         familyi={K\bibinitperiod},
+         given={Alistair},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{KA1}
+    \strng{fullhash}{KA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{A Data-driven Methodology for Motivating a Set of Coherence
+  Relations}
+    \list{institution}{1}{%
+      {The University of Edinburgh}%
+    }
+    \field{type}{phdthesis}
+    \field{year}{1996}
+  \endentry
+
+  \entry{BernersTim}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=BLT}{%
+         family={Berners-Lee},
+         familyi={B\bibinithyphendelim L\bibinitperiod},
+         given={Tim},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BLT1}
+    \strng{fullhash}{BLT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{howpublished}{\url{ftp://info.cern.ch/pub/www/doc/http-spec.txt.Z}}
+    \field{title}{Hypertext Transfer Protocol (HTTP)}
+    \field{urlday}{30}
+    \field{urlmonth}{09}
+    \field{urlyear}{2010}
+  \endentry
+
+  \entry{LectureA}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=P}{%
+         family={{Princeton University}},
+         familyi={P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{P1}
+    \strng{fullhash}{P1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{howpublished}{\url{http://www.cogsci.princeton.edu/~wn/index.shtml}}
+    \field{title}{WordNet}
+    \field{urlday}{30}
+    \field{urlmonth}{09}
+    \field{urlyear}{2010}
+  \endentry
+
+  \entry{scott2013sdn}{misc}{}{}
+    \name{author}{3}{}{%
+      {{hash=SHS}{%
+         family={Scott-Hayward},
+         familyi={S\bibinithyphendelim H\bibinitperiod},
+         given={Sandra},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=OG}{%
+         family={O'Callaghan},
+         familyi={O\bibinitperiod},
+         given={Gemma},
+         giveni={G\bibinitperiod},
+      }}%
+      {{hash=SS}{%
+         family={Sezer},
+         familyi={S\bibinitperiod},
+         given={Sakir},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SHS+1}
+    \strng{fullhash}{SHSOGSS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{howpublished}{IEEE SDN for Future Networks and Services (SDN4FNS)}
+    \field{title}{{SDN} Security: A Survey}
+    \field{year}{2013}
+  \endentry
+
+  \entry{ashton2009internet}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=AK}{%
+         family={Ashton},
+         familyi={A\bibinitperiod},
+         given={Kevin},
+         giveni={K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AK1}
+    \strng{fullhash}{AK1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{That `Internet of Things' Thing}
+    \field{journaltitle}{RFID Journal}
+    \field{year}{2009}
+  \endentry
+\enddatalist
+\endinput

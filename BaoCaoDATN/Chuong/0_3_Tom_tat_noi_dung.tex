@@ -1,0 +1,22 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+\begin{center}
+    \Large{\textbf{TÓM TẮT NỘI DUNG ĐỒ ÁN}}\\
+\end{center}
+\vspace{1cm}
+Nhu cầu học tiếng Nhật tại Việt Nam tăng trưởng mạnh trong nhiều năm qua, song việc học ngôn ngữ này đòi hỏi người học tiếp xúc thường xuyên với nội dung nghe nhìn thực tế và phải chủ động kiểm tra lại kiến thức ngay sau khi tiếp thu. Các nền tảng phổ biến hiện nay như Duolingo, WaniKani hay các kho video trên YouTube đều chưa giải quyết trọn vẹn bài toán này: hoặc thiếu nội dung video có cấu trúc, hoặc không có cơ chế kiểm tra kiến thức gắn liền ngay sau mỗi bài học, hoặc chưa hỗ trợ đa dạng dạng câu hỏi phù hợp đặc thù tiếng Nhật và chưa được bản địa hóa cho người học Việt Nam.
+
+Để giải quyết vấn đề trên, đồ án hướng tới xây dựng một nền tảng học tiếng Nhật trực tuyến theo hướng kết hợp video bài giảng với hệ thống quiz tương tác ngay sau mỗi video, áp dụng kiến trúc web phân tách frontend và backend giao tiếp qua RESTful API — hướng tiếp cận này cho phép phát triển độc lập hai thành phần, đồng thời dễ mở rộng và bảo trì cho một dự án triển khai một mình.
+
+Hệ thống được xây dựng với backend Spring Boot và cơ sở dữ liệu MySQL quản lý toàn bộ nghiệp vụ về khóa học, bài học, quiz, tiến độ học tập và xác thực người dùng bằng JWT; frontend sử dụng React kết hợp TanStack Query và Zustand để quản lý dữ liệu và trạng thái giao diện. Nền tảng tổ chức nội dung theo cấu trúc Cấp độ – Khóa học – Bài học – Quiz, cho phép học viên đăng ký khóa học (miễn phí hoặc trả phí qua VNPay), xem video bài giảng có theo dõi tiến độ, và làm bài quiz gồm 10 câu chia thành ba nhóm dạng câu hỏi (từ vựng, nội dung, trình tự) ngay sau khi xem hết video. Kết quả học tập, lịch sử làm bài và chuỗi ngày học liên tục (streak) được lưu lại để học viên theo dõi quá trình học của mình; phía quản trị viên có giao diện riêng để quản lý khóa học, bài học và ngân hàng câu hỏi.
+
+Đóng góp chính của đồ án là một hệ thống web hoàn chỉnh, đã triển khai và kiểm thử, trong đó hệ thống quiz được thiết kế tổng quát hóa theo kiểu câu hỏi (\textit{question type}) cho phép bổ sung các dạng câu hỏi mới trong tương lai mà không cần thay đổi cấu trúc cơ sở dữ liệu, cùng với cơ chế phân quyền tách biệt rõ ràng giữa học viên và quản trị viên, và cơ chế xác thực JWT có xoay vòng refresh token đảm bảo an toàn cho người dùng.
+\begin{flushright}
+Sinh viên thực hiện\\
+\begin{tabular}{@{}c@{}}
+\textit{(Ký và ghi rõ họ tên)}
+\end{tabular}
+\end{flushright}
+
+\end{document}

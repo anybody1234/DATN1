@@ -1,0 +1,321 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương này trình bày toàn bộ quá trình phân tích thiết kế, triển khai và đánh giá hệ thống NihongoFlow, dựa trên các yêu cầu đã xác định ở Chương \ref{chapter:Related_works} và các công nghệ đã lựa chọn ở Chương \ref{chapter:Methodology}.
+
+\section{Thiết kế kiến trúc}
+
+\subsection{Lựa chọn kiến trúc phần mềm}
+\label{subsection:4.1.1}
+
+Hệ thống được thiết kế theo kiến trúc ba lớp (3-layer architecture) kết hợp với mô hình phân tách frontend--backend qua RESTful API. Phía backend, ba lớp được tổ chức như sau:
+
+\begin{itemize}
+    \item \textbf{Lớp Controller} (gói \texttt{controller}): tiếp nhận request HTTP, thực hiện validate đầu vào (\texttt{@Valid}) và ánh xạ sang DTO; không chứa logic nghiệp vụ.
+    \item \textbf{Lớp Service} (gói \texttt{service}): chứa toàn bộ logic nghiệp vụ -- tính điểm quiz, kiểm tra điều kiện đăng ký khóa học, cập nhật streak, xác thực chữ ký VNPay, v.v.
+    \item \textbf{Lớp Repository} (gói \texttt{repository}): các interface kế thừa \texttt{JpaRepository}, chỉ chứa định nghĩa truy vấn (kể cả truy vấn tùy biến bằng \texttt{@Query}), không chứa logic.
+\end{itemize}
+
+Bên cạnh ba lớp chính, hệ thống có thêm các gói hỗ trợ: \texttt{entity} (các thực thể JPA ánh xạ tới bảng CSDL), \texttt{dto} (đối tượng truyền dữ liệu cho request/response), \texttt{security} (bộ lọc JWT, cấu hình \texttt{UserDetailsService}), \texttt{config} (cấu hình Spring, CORS, VNPay), và \texttt{exception} (xử lý lỗi tập trung qua \texttt{@RestControllerAdvice} và \texttt{ApiException}).
+
+Phía frontend, kiến trúc tương ứng được tổ chức theo các tầng: \textbf{Page} (hiển thị giao diện, điều hướng), \textbf{Hook} (gói \texttt{hooks} -- toàn bộ \texttt{useQuery}/\texttt{useMutation} bằng TanStack Query), \textbf{Lib} (gói \texttt{lib} -- hàm thuần, hằng số, instance Axios), và \textbf{Component} (gói \texttt{components} -- thành phần giao diện tái sử dụng). Page chỉ được phép gọi dữ liệu thông qua hook, không gọi trực tiếp Axios; hook không chứa state giao diện (như trạng thái mở/đóng modal).
+
+So với mô hình MVC truyền thống, kiến trúc trên có thể coi lớp Controller + Service như phần "Controller" mở rộng, lớp Entity/Repository như "Model", và toàn bộ ứng dụng React như "View" -- giao tiếp với "Model/Controller" hoàn toàn qua API JSON thay vì render phía server.
+
+\subsection{Thiết kế tổng quan}
+\label{subsection:4.1.2}
+
+Hình \ref{fig:package-diagram} mô tả biểu đồ gói (package diagram) của toàn bộ hệ thống, bao gồm các gói backend (\texttt{controller}, \texttt{service}, \texttt{repository}, \texttt{entity}, \texttt{dto}, \texttt{security}, \texttt{config}, \texttt{exception}) và các gói frontend (\texttt{pages}, \texttt{hooks}, \texttt{lib}, \texttt{components}, \texttt{store}, \texttt{types}). Quan hệ phụ thuộc tuân theo nguyên tắc một chiều: \texttt{controller} phụ thuộc \texttt{service}, \texttt{service} phụ thuộc \texttt{repository} và \texttt{entity}; không có chiều phụ thuộc ngược lại. Tương tự, \texttt{pages} phụ thuộc \texttt{hooks} và \texttt{components}, \texttt{hooks} phụ thuộc \texttt{lib} và \texttt{store}, không có gói tầng dưới phụ thuộc ngược lên tầng trên.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/package-diagram.png}
+    \caption{Biểu đồ gói tổng quan hệ thống NihongoFlow}
+    \label{fig:package-diagram}
+\end{figure}
+
+Hai chiều giao tiếp chính giữa frontend và backend là: (i) các request CRUD/nghiệp vụ qua \texttt{lib/axios.ts} (instance Axios duy nhất, có interceptor tự động đính kèm access token và làm mới token khi hết hạn); (ii) request callback từ VNPay tới \texttt{PaymentController}, không đi qua frontend.
+
+\subsection{Thiết kế chi tiết gói}
+\label{subsection:4.1.3}
+
+Hai nhóm package có quan hệ phức tạp nhất trong hệ thống là nhóm \textbf{Quiz} và nhóm \textbf{Enrollment}, được trình bày chi tiết dưới đây.
+
+\textbf{Nhóm Quiz.} Hình \ref{fig:class-diagram-quiz} mô tả các lớp \texttt{Quiz}, \texttt{Question}, \texttt{QuizAttempt} và quan hệ giữa chúng. Một \texttt{Lesson} có quan hệ 1--1 với \texttt{Quiz}; một \texttt{Quiz} kết hợp (composition) với nhiều \texttt{Question} (đúng 10 câu, chia theo \texttt{questionType}); mỗi \texttt{QuizAttempt} liên kết tới một \texttt{Quiz} và một \texttt{User}, lưu kết quả dưới dạng cột JSON \texttt{answers}. \texttt{QuizService} phụ thuộc (dependency) vào cả ba repository tương ứng để thực hiện việc chấm điểm.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Hinhve/class-diagram-quiz.png}
+    \caption{Biểu đồ lớp nhóm Quiz}
+    \label{fig:class-diagram-quiz}
+\end{figure}
+
+\textbf{Nhóm Enrollment.} Hình \ref{fig:class-diagram-enrollment} mô tả quan hệ giữa \texttt{User}, \texttt{Course} và \texttt{UserCourseEnrollment} -- thực thể trung gian biểu diễn quan hệ nhiều--nhiều giữa người dùng và khóa học, có khóa chính phức hợp (\texttt{userId}, \texttt{courseId}). \texttt{Payment} liên kết với \texttt{User} và \texttt{Course}, được \texttt{PaymentService} sử dụng để tạo và xác thực giao dịch VNPay; khi giao dịch thành công, \texttt{PaymentService} gọi \texttt{EnrollmentService} (kết hợp/association) để tạo bản ghi \texttt{UserCourseEnrollment}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Hinhve/class-diagram-enrollment.png}
+    \caption{Biểu đồ lớp nhóm Enrollment và Payment}
+    \label{fig:class-diagram-enrollment}
+\end{figure}
+
+\section{Thiết kế chi tiết}
+
+\subsection{Thiết kế giao diện}
+\label{subsection:4.2.1}
+
+Giao diện hệ thống hướng tới máy tính để bàn (desktop-first), độ phân giải tham chiếu \(1920\times1080\), với bố cục nội dung giới hạn chiều rộng tối đa \(1120\)px, căn giữa. Hệ thống sử dụng phong cách thiết kế tối giản, nền tối, lấy cảm hứng từ Resend.com, với bộ màu chuẩn hóa qua biến CSS:
+
+\begin{itemize}
+    \item \textbf{Nền}: \texttt{--bg} (\#0a0a0a), \texttt{--s1} (\#111111) cho thẻ/khối nội dung, \texttt{--s2} (\#161616) cho khối lồng bên trong
+    \item \textbf{Viền}: \texttt{--b1} (\#1f1f1f), \texttt{--b2} (\#2a2a2a)
+    \item \textbf{Chữ}: \texttt{--t1} (\#ededed) chữ chính, \texttt{--t2} (\#a1a1a1) chữ phụ, \texttt{--t3} (\#555555) chữ mờ
+    \item \textbf{Nhấn}: \texttt{--acc} (\#e94560) -- duy nhất một màu nhấn cho toàn hệ thống, dùng cho nút hành động chính, thanh tiến độ và trạng thái được chọn
+\end{itemize}
+
+Phông chữ chính là Inter cho văn bản tiếng Việt/tiếng Anh và Noto Sans JP cho văn bản tiếng Nhật (cỡ chữ tối thiểu 14px, độ đậm tối thiểu 500 để đảm bảo hiển thị rõ nét). Khoảng cách giữa các phần tử tuân theo lưới 8px. Các thành phần dùng chung (nút, thẻ, huy hiệu, ô nhập liệu) được xây dựng từ shadcn/ui và tùy biến lại theo bộ token trên thông qua \texttt{globals.css}, đảm bảo không có giá trị màu hay khoảng cách "hard-code" rải rác trong mã nguồn.
+
+Một số màn hình tiêu biểu minh họa các nguyên tắc trên gồm trang chủ (Hình \ref{fig:screenshot-landing}), trang khóa học, trang xem video kết hợp quiz, và khu vực quản trị, được trình bày chi tiết tại Mục \ref{subsection:4.3.3}.
+
+\subsection{Thiết kế lớp}
+\label{subsection:4.2.2}
+
+Phần này trình bày chi tiết ba lớp chủ đạo của hệ thống: \texttt{Quiz}/\texttt{QuizAttempt}, \texttt{Question}, và \texttt{UserCourseEnrollment}.
+
+\textbf{Lớp \texttt{Question}} đại diện cho một câu hỏi trong quiz, với các thuộc tính: \texttt{id} (Long), \texttt{quiz} (quan hệ \texttt{ManyToOne} tới \texttt{Quiz}), \texttt{content} (String -- nội dung câu hỏi), \texttt{options} (kiểu JSON, mảng 4 chuỗi đáp án), \texttt{correctOption} (int -- chỉ số đáp án đúng từ 0--3), \texttt{orderIndex} (int -- thứ tự câu hỏi từ 1--10), và \texttt{questionType} (enum: \texttt{VOCABULARY}, \texttt{CONTENT}, \texttt{SEQUENCE}). Thiết kế tổng quát hóa qua \texttt{questionType} cho phép thêm dạng câu hỏi mới trong tương lai mà không cần thay đổi schema -- nội dung này được phân tích sâu hơn ở Chương \ref{chapter:SolutionAndContribution}.
+
+\textbf{Lớp \texttt{QuizAttempt}} lưu một lượt làm bài, gồm: \texttt{id}, \texttt{user} (\texttt{ManyToOne} tới \texttt{User}), \texttt{quiz} (\texttt{ManyToOne} tới \texttt{Quiz}), \texttt{score} (double), \texttt{passed} (boolean), \texttt{answers} (kiểu JSON -- ánh xạ \texttt{questionId} sang chỉ số đáp án đã chọn), và \texttt{attemptedAt} (thời điểm nộp bài). Phương thức nghiệp vụ chính \texttt{QuizService.submitQuiz(...)} nhận vào \texttt{quizId}, \texttt{userId} và \texttt{answers}, thực hiện: (i) kiểm tra tập \texttt{questionId} gửi lên khớp chính xác (đối xứng hai chiều) với tập câu hỏi của quiz; (ii) so sánh từng đáp án với \texttt{correctOption} để tính \texttt{score}; (iii) so sánh \texttt{score} với \texttt{Quiz.passScore} để xác định \texttt{passed}; (iv) lưu \texttt{QuizAttempt} và cập nhật streak nếu đây là lượt hoàn thành bài học đầu tiên trong ngày.
+
+\textbf{Lớp \texttt{UserCourseEnrollment}} là thực thể có khóa chính phức hợp (\texttt{userId}, \texttt{courseId}), gồm thêm thuộc tính \texttt{enrolledAt}. Phương thức \texttt{EnrollmentService.enroll(userId, courseId)} kiểm tra điều kiện: nếu \texttt{Course.price == 0}, tạo bản ghi enrollment trực tiếp; nếu \texttt{price > 0}, yêu cầu phải có \texttt{Payment} thành công trước đó (được tạo qua luồng VNPay) mới cho phép enroll.
+
+Hai luồng tương tác quan trọng nhất được minh họa bằng biểu đồ trình tự:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/sequence-submit-quiz.png}
+    \caption{Biểu đồ trình tự: Nộp bài quiz}
+    \label{fig:sequence-submit-quiz}
+\end{figure}
+
+Hình \ref{fig:sequence-submit-quiz} mô tả luồng nộp bài quiz: \texttt{QuizPage} (frontend) gọi hook \texttt{useSubmitQuiz}, gửi \texttt{POST /api/v1/quizzes/:id/submit} tới \texttt{QuizController}; \texttt{QuizController} gọi \texttt{QuizService.submitQuiz}, dịch vụ này truy vấn \texttt{QuestionRepository} để lấy đáp án đúng, tính điểm, lưu \texttt{QuizAttempt} qua \texttt{QuizAttemptRepository}, đồng thời gọi \texttt{StreakService} để cập nhật chuỗi ngày học; kết quả (điểm số, đạt/không đạt) được trả về và hiển thị qua popup kết quả.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/sequence-enroll-payment.png}
+    \caption{Biểu đồ trình tự: Đăng ký khóa học có phí qua VNPay}
+    \label{fig:sequence-enroll-payment}
+\end{figure}
+
+Hình \ref{fig:sequence-enroll-payment} mô tả luồng đăng ký khóa học có phí: \texttt{CourseDetailPage} gọi \texttt{useCreatePaymentMutation}, gửi \texttt{POST /api/v1/payments/create} tới \texttt{PaymentController}; \texttt{PaymentService} tạo bản ghi \texttt{Payment} ở trạng thái chờ, gọi \texttt{VnpayService} để sinh URL thanh toán kèm chữ ký HMAC-SHA512, và trả URL về cho frontend để chuyển hướng (\texttt{window.location.href}). Sau khi người dùng thanh toán trên cổng VNPay, VNPay gọi lại \texttt{GET /api/v1/payments/vnpay-return}; \texttt{VnpayService} xác thực lại chữ ký, \texttt{PaymentService} cập nhật trạng thái \texttt{Payment} và gọi \texttt{EnrollmentService.enroll(...)} nếu thành công, sau đó \texttt{PaymentController} chuyển hướng (redirect) trình duyệt về trang \texttt{/thanh-toan/ket-qua} của frontend.
+
+\subsection{Thiết kế cơ sở dữ liệu}
+\label{subsection:4.2.3}
+
+Hình \ref{fig:erd} trình bày biểu đồ thực thể liên kết (ERD) của toàn bộ hệ thống, gồm 12 bảng chính: \texttt{users}, \texttt{levels}, \texttt{courses}, \texttt{lessons}, \texttt{quizzes}, \texttt{questions}, \texttt{quiz\_attempts}, \texttt{user\_lesson\_progress}, \texttt{user\_course\_enrollments}, \texttt{user\_streaks}, \texttt{payments}, và bảng lưu refresh token.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Hinhve/erd.png}
+    \caption{Biểu đồ thực thể liên kết (ERD) hệ thống NihongoFlow}
+    \label{fig:erd}
+\end{figure}
+
+Một số điểm thiết kế đáng chú ý:
+
+\begin{itemize}
+    \item \textbf{Khóa chính phức hợp}: \texttt{user\_lesson\_progress} dùng khóa chính phức hợp (\texttt{user\_id}, \texttt{lesson\_id}); \texttt{user\_course\_enrollments} dùng khóa chính phức hợp (\texttt{user\_id}, \texttt{course\_id}). Thiết kế này đảm bảo mỗi người dùng chỉ có đúng một bản ghi tiến độ cho mỗi bài học và đúng một bản ghi đăng ký cho mỗi khóa học.
+    \item \textbf{Cột kiểu JSON}: \texttt{questions.options} (mảng 4 chuỗi đáp án) và \texttt{quiz\_attempts.answers} (ánh xạ \texttt{questionId} sang đáp án đã chọn) được lưu dưới dạng JSON, cho phép linh hoạt số lượng và cấu trúc mà không cần bảng phụ.
+    \item \textbf{Phân cấp nội dung}: quan hệ một--nhiều theo chuỗi \texttt{levels} \(\to\) \texttt{courses} \(\to\) \texttt{lessons} \(\to\) \texttt{quizzes} \(\to\) \texttt{questions}, mỗi bảng con có khóa ngoại trỏ tới bảng cha và cột \texttt{order}/\texttt{order\_index} để xác định thứ tự hiển thị.
+    \item \textbf{Ràng buộc xóa lan truyền (\texttt{ON DELETE CASCADE})}: khi một \texttt{lesson} hoặc \texttt{course} bị xóa, các bản ghi liên quan (\texttt{quizzes}, \texttt{questions}, \texttt{quiz\_attempts}, \texttt{user\_lesson\_progress}, \texttt{user\_course\_enrollments}) được tự động xóa theo, tránh dữ liệu mồ côi.
+    \item \textbf{Quản lý phiên bản schema}: toàn bộ thay đổi cấu trúc CSDL được quản lý qua 7 tệp migration Flyway (V1, V2, V3, V4, V5, V7, V8), mỗi tệp tương ứng một thay đổi có chủ đích (schema gốc, thêm trường câu hỏi, thêm bảng enrollment, thêm cờ ẩn khóa học, thêm cascade delete cho lesson và course, thêm bảng thanh toán).
+\end{itemize}
+
+\section{Xây dựng ứng dụng}
+
+\subsection{Thư viện và công cụ sử dụng}
+\label{subsection:4.3.1}
+
+Bảng \ref{table:4.1} liệt kê các công cụ và thư viện chính được sử dụng để xây dựng hệ thống.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\hline
+\textbf{Thành phần} & \textbf{Công cụ / Thư viện} & \textbf{Phiên bản} \\ \hline
+Ngôn ngữ backend & Java & 21 \\ \hline
+Framework backend & Spring Boot & 3.x \\ \hline
+Bảo mật & Spring Security + JJWT & 3.x / 0.12.x \\ \hline
+ORM & Spring Data JPA (Hibernate) & 6.x \\ \hline
+CSDL & MySQL & 8.0 \\ \hline
+Quản lý migration & Flyway & 10.x \\ \hline
+Build tool backend & Maven & 3.9.x \\ \hline
+Ngôn ngữ frontend & TypeScript (strict mode) & 5.x \\ \hline
+Framework frontend & React + Vite & React 18 / Vite 5 \\ \hline
+Quản lý server state & TanStack Query & 5.x \\ \hline
+Quản lý client state & Zustand & 4.x \\ \hline
+Định tuyến & React Router & 6.x \\ \hline
+CSS Framework & Tailwind CSS + shadcn/ui & 4.x \\ \hline
+HTTP client & Axios & 1.x \\ \hline
+Phát video & YouTube IFrame Player API & -- \\ \hline
+Thanh toán & VNPay Sandbox & -- \\ \hline
+Container hóa môi trường dev & Docker Compose (MySQL) & -- \\ \hline
+\end{tabular}
+\caption{Danh sách công cụ và thư viện sử dụng}
+\label{table:4.1}
+\end{table}
+
+\subsection{Kết quả đạt được}
+\label{subsection:4.3.2}
+
+Hệ thống đã được xây dựng và chạy được đầy đủ hai luồng người dùng (học viên và quản trị viên) trên môi trường phát triển cục bộ. Bảng \ref{table:4.2} thống kê quy mô mã nguồn theo từng tầng.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llc}
+\hline
+\textbf{Phía} & \textbf{Thành phần} & \textbf{Số lượng} \\ \hline
+\multirow{8}{*}{Backend} & Controller & 10 \\
+ & Service & 14 \\
+ & Repository & 12 \\
+ & Entity & 15 \\
+ & DTO & 27 \\
+ & Lớp Security & 6 \\
+ & Lớp Config & 5 \\
+ & Lớp Exception & 3 \\ \hline
+\multirow{4}{*}{Frontend} & Page & 13 \\
+ & Custom hook & 11 \\
+ & Lib util & 5 \\
+ & Component dùng chung & 12 \\ \hline
+\end{tabular}
+\caption{Thống kê quy mô mã nguồn theo tầng}
+\label{table:4.2}
+\end{table}
+
+Dữ liệu mẫu (seed data) cho môi trường phát triển bao gồm 5 cấp độ (N5--N1), 10 khóa học (2 khóa/cấp độ), 24 bài học, 24 quiz và 240 câu hỏi (mỗi quiz đúng 10 câu, chia 4 câu VOCABULARY, 3 câu CONTENT, 3 câu SEQUENCE).
+
+Về mặt chức năng, hệ thống đã hoàn thiện: xác thực JWT (đăng ký, đăng nhập, làm mới token, đăng xuất); quản lý nội dung theo cấu trúc Cấp độ -- Khóa học -- Bài học -- Quiz; đăng ký khóa học (miễn phí và có phí qua VNPay); phát video YouTube với theo dõi tiến độ và tự động chuyển sang quiz khi xem hết; chấm điểm và lưu lịch sử làm quiz kèm chức năng xem lại đáp án; theo dõi streak học tập theo ngày; và toàn bộ chức năng quản trị (CRUD khóa học/bài học, quản lý câu hỏi quiz).
+
+\subsection{Minh họa các chức năng chính}
+\label{subsection:4.3.3}
+
+Phần này trình bày ảnh chụp màn hình của các chức năng chính trong hệ thống.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-landing.png}
+    \caption{Trang chủ (Landing page) -- giới thiệu các cấp độ N5--N1}
+    \label{fig:screenshot-landing}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-courses.png}
+    \caption{Trang danh sách khóa học, lọc theo cấp độ}
+    \label{fig:screenshot-courses}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-course-detail.png}
+    \caption{Trang chi tiết khóa học -- danh sách bài học và nút đăng ký/mua khóa học}
+    \label{fig:screenshot-course-detail}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-lesson-video.png}
+    \caption{Trang xem video bài học với YouTube custom player}
+    \label{fig:screenshot-lesson-video}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-quiz.png}
+    \caption{Trang làm bài quiz, chia theo 3 nhóm câu hỏi}
+    \label{fig:screenshot-quiz}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-dashboard.png}
+    \caption{Trang Dashboard -- tiến độ học tập, streak và lịch sử làm quiz}
+    \label{fig:screenshot-dashboard}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-admin-courses.png}
+    \caption{Trang quản trị -- danh sách và quản lý khóa học}
+    \label{fig:screenshot-admin-courses}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-admin-quiz.png}
+    \caption{Trang quản trị -- chỉnh sửa câu hỏi quiz}
+    \label{fig:screenshot-admin-quiz}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-payment-result.png}
+    \caption{Trang kết quả thanh toán VNPay}
+    \label{fig:screenshot-payment-result}
+\end{figure}
+
+\section{Kiểm thử}
+\label{section:4.4}
+
+Hệ thống được kiểm thử thủ công theo kịch bản (manual scenario-based testing) trên hai chức năng quan trọng nhất: nộp bài quiz và đăng ký khóa học có phí qua VNPay. Bảng \ref{table:4.3} và Bảng \ref{table:4.4} trình bày các trường hợp kiểm thử tiêu biểu.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{p{2cm}p{4.2cm}p{4.2cm}p{1.3cm}}
+\hline
+\textbf{Mã TC} & \textbf{Đầu vào} & \textbf{Kết quả mong đợi} & \textbf{Kết quả} \\ \hline
+TC-Quiz-01 & Nộp đủ 10 câu, tất cả đáp án đúng & \texttt{score = 100}, \texttt{passed = true} & Đạt \\ \hline
+TC-Quiz-02 & Nộp đủ 10 câu, số câu đúng dưới ngưỡng \texttt{passScore} & \texttt{passed = false}, hiển thị nút "Làm lại" & Đạt \\ \hline
+TC-Quiz-03 & Nộp thiếu một \texttt{questionId} so với quiz & API trả lỗi \texttt{\seqsplit{VALIDATION\_ERROR}} & Đạt \\ \hline
+TC-Quiz-04 & Nộp dư một \texttt{questionId} không thuộc quiz & API trả lỗi \texttt{\seqsplit{VALIDATION\_ERROR}} & Đạt \\ \hline
+TC-Quiz-05 & Lượt làm đầu tiên trong ngày & \texttt{\seqsplit{UserStreak.currentStreak}} tăng thêm 1 & Đạt \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Trường hợp kiểm thử chức năng nộp bài quiz}
+\label{table:4.3}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{p{2cm}p{4.2cm}p{4.2cm}p{1.3cm}}
+\hline
+\textbf{Mã TC} & \textbf{Đầu vào} & \textbf{Kết quả mong đợi} & \textbf{Kết quả} \\ \hline
+TC-Pay-01 & Đăng ký khóa học \texttt{price = 0} & Tạo bản ghi \texttt{\seqsplit{UserCourseEnrollment}} ngay, không qua VNPay & Đạt \\ \hline
+TC-Pay-02 & Đăng ký khóa học \texttt{price > 0}, thanh toán thành công trên sandbox & Callback xác thực HMAC-SHA512 hợp lệ, tạo \texttt{Payment} thành công và \texttt{\seqsplit{UserCourseEnrollment}} & Đạt \\ \hline
+TC-Pay-03 & Hủy giao dịch trên trang VNPay & \texttt{Payment} ở trạng thái thất bại, không tạo enrollment, frontend hiển thị thông báo thất bại & Đạt \\ \hline
+TC-Pay-04 & Callback với chữ ký không hợp lệ (giả mạo) & API từ chối, không cập nhật trạng thái \texttt{Payment} & Đạt \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Trường hợp kiểm thử chức năng đăng ký khóa học và thanh toán VNPay}
+\label{table:4.4}
+\end{table}
+
+Tổng cộng 9 trường hợp kiểm thử nêu trên đều cho kết quả đạt. Các trường hợp kiểm thử bổ sung cho những chức năng khác (xác thực JWT, enrollment khóa học miễn phí, CRUD nội dung phía quản trị) được thực hiện theo phương pháp tương tự trong quá trình phát triển, không trình bày chi tiết trong báo cáo.
+
+\section{Triển khai}
+\label{section:4.5}
+
+Hệ thống được triển khai và kiểm thử trên môi trường phát triển cục bộ (localhost), gồm ba thành phần chạy song song:
+
+\begin{itemize}
+    \item \textbf{Cơ sở dữ liệu MySQL}: chạy qua Docker Compose (\texttt{docker compose up -d mysql}), cổng mặc định \texttt{3306}, dữ liệu được khởi tạo qua các migration Flyway và nạp dữ liệu mẫu (seed data) bằng \texttt{mysql.exe}.
+    \item \textbf{Backend Spring Boot}: chạy bằng \texttt{mvn spring-boot:run}, lắng nghe ở cổng \texttt{8080}, cung cấp toàn bộ API dưới tiền tố \texttt{/api/v1}.
+    \item \textbf{Frontend React (Vite)}: chạy bằng \texttt{npm run dev}, lắng nghe ở cổng \texttt{5173}, gọi API backend qua biến môi trường \texttt{VITE\_API\_BASE\_URL}.
+\end{itemize}
+
+Cấu hình nhạy cảm (chuỗi kết nối CSDL, khóa bí mật JWT, thông tin sandbox VNPay) được quản lý qua biến môi trường, không hard-code trong mã nguồn.
+
+\end{document}

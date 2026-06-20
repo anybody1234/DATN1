@@ -1,0 +1,336 @@
+/* Google Fonts phải đứng trước mọi statement khác */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0a0a0a;
+  --color-s1: #111111;
+  --color-s2: #161616;
+  --color-b1: #262626;
+  --color-b2: #333333;
+  --color-t1: #ededed;
+  --color-t2: #a1a1a1;
+  --color-t3: #555555;
+  --color-acc: #e94560;
+  --color-acc-hover: #d63a52;
+  --color-acc-muted: rgba(233, 69, 96, 0.12);
+  --color-acc-bd: rgba(233, 69, 96, 0.4);
+  /* ok — semantic token cho trạng thái đúng/passed trong quiz/badge.
+     Đây là ngoại lệ có chủ đích: UX quiz cần phân biệt đúng/sai rõ ràng.
+     KHÔNG dùng cho bất kỳ mục đích nào khác. */
+  --color-ok: #4ade80;
+  --color-ok-muted: rgba(74, 222, 128, 0.08);
+  --color-ok-bd: rgba(74, 222, 128, 0.3);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-jp: "Noto Sans JP", sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
+
+:root {
+  --bg: #0a0a0a;
+  --s1: #111111;
+  --s2: #161616;
+  --b1: #262626;
+  --b2: #333333;
+  --t1: #ededed;
+  --t2: #a1a1a1;
+  --t3: #555555;
+  --acc: #e94560;
+  --acc-hover: #d63a52;
+  --acc-muted: rgba(233, 69, 96, 0.12);
+  --acc-bd: rgba(233, 69, 96, 0.4);
+  --ok: #4ade80;
+  --ok-muted: rgba(74, 222, 128, 0.08);
+  --ok-bd: rgba(74, 222, 128, 0.3);
+  /* auth-specific bg — tối hơn --bg để tạo chiều sâu glassmorphism */
+  --auth-bg: #050505;
+  /* navbar */
+  --nav-bg: rgba(10, 10, 10, 0.88);
+  --nav-border: rgba(255, 255, 255, 0.06);
+  --nav-btn-bd: rgba(255, 255, 255, 0.12);
+  --nav-btn-bg: rgba(255, 255, 255, 0.04);
+}
+
+/* Đặt reset trong @layer base để Tailwind utilities (@layer utilities) có thể override đúng.
+   Nếu để ngoài layer, unlayered CSS thắng mọi layered CSS bất kể specificity → mx-auto bị override. */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Giữ chỗ cố định cho scrollbar — tránh layout shift khi
+       chuyển trang giữa trang có/không có scrollbar */
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--t1);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+}
+
+.font-jp {
+  font-family: "Noto Sans JP", sans-serif;
+  font-weight: 500;
+}
+
+.font-serif {
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--b2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--t3);
+}
+
+::selection {
+  background: rgba(233, 69, 96, 0.3);
+  color: var(--t1);
+}
+
+/* ─── Auth page background: deep charcoal + grid ────── */
+/* height = 100dvh - 52px navbar */
+.auth-scene {
+  position: relative;
+  height: calc(100dvh - 52px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1.5rem;
+  background-color: var(--auth-bg);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.038) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.038) 1px, transparent 1px);
+  background-size: 72px 72px;
+  overflow: hidden;
+}
+
+/* Grain texture overlay */
+.auth-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  opacity: 0.065;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Radial glow at centre */
+.auth-scene::after {
+  content: "";
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(233, 69, 96, 0.09) 0%,
+    rgba(233, 69, 96, 0.03) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Glass card entrance animation ─────────────────── */
+@keyframes authFadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.auth-card {
+  animation: authFadeSlideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Underline input ────────────────────────────────── */
+.auth-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 0;
+  color: #ededed;
+  font-size: 14px;
+  font-family: "Inter", system-ui, sans-serif;
+  outline: none;
+  border-radius: 0;
+  -webkit-appearance: none;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.auth-input::placeholder {
+  color: #2e2e2e;
+}
+
+.auth-input:focus {
+  border-bottom-color: rgba(233, 69, 96, 0.7);
+  box-shadow: 0 1px 0 0 rgba(233, 69, 96, 0.22);
+}
+
+/* Auth switch link (đăng nhập / đăng ký) */
+.auth-link {
+  color: var(--t3);
+  transition: color 0.2s ease;
+}
+.auth-link:hover {
+  color: var(--t2);
+}
+
+/* autofill fix */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ededed;
+  -webkit-box-shadow: 0 0 0 1000px #0a0a0a inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ─── YouTube custom player: progress bar ───────────── */
+.yt-progress {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  display: block;
+  background: linear-gradient(
+    to right,
+    var(--acc) var(--yt-progress-pct, 0%),
+    rgba(255, 255, 255, 0.18) var(--yt-progress-pct, 0%)
+  );
+}
+
+.yt-progress:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.yt-progress::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--acc);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.yt-progress:not(:disabled):hover::-webkit-slider-thumb {
+  opacity: 1;
+}
+
+.yt-progress::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--acc);
+  border: none;
+  cursor: pointer;
+}
+
+/* Gradient overlay phía dưới player — che controls */
+.yt-controls-gradient {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, transparent 100%);
+}
+
+/* Đảm bảo iframe YouTube fill đúng container */
+.yt-wrapper iframe {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* Fullscreen — bỏ ràng buộc aspect-video để player fill toàn màn hình,
+   tránh lệch giữa khung video và lớp controls khi thu nhỏ lại */
+.yt-player-wrapper:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+/* ─── Navbar ─────────────────────────────────────────── */
+.nav-header {
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--nav-border);
+}
+
+.nav-mobile-drawer {
+  border-top: 1px solid var(--nav-border);
+  background: var(--s1);
+}
+
+.nav-mobile-divider {
+  border-top: 1px solid var(--nav-border);
+}
+
+.nav-register-btn {
+  border: 1px solid var(--nav-btn-bd);
+  background: var(--nav-btn-bg);
+}
+
+/* ─── Modal overlay (dùng chung cho admin + quiz result) */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+/* ─── Heading letter-spacing tight (dùng thay inline style letterSpacing) */
+.heading-tight {
+  letter-spacing: -0.02em;
+}
+
+/* ─── Ẩn mũi tên tăng/giảm của input[type=number] ───── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

@@ -1,0 +1,287 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương này trình bày kết quả khảo sát hiện trạng các nền tảng học tiếng Nhật trực tuyến hiện có, từ đó xác định các chức năng cần xây dựng cho hệ thống NihongoFlow. Mục \ref{section:2.1} phân tích và so sánh các nền tảng tương tự. Mục \ref{section:2.2} trình bày tổng quan chức năng thông qua biểu đồ use case và quy trình nghiệp vụ chính. Mục \ref{section:2.3} đặc tả chi tiết các use case quan trọng nhất. Mục \ref{section:2.4} trình bày các yêu cầu phi chức năng của hệ thống.
+
+\section{Khảo sát hiện trạng}
+\label{section:2.1}
+
+Như đã trình bày ở Chương \ref{chapter:Introduction}, ba nhóm nền tảng học tiếng Nhật trực tuyến phổ biến hiện nay là Duolingo, WaniKani và các kho video tiếng Nhật trên YouTube (kết hợp một số nền tảng song ngữ như JapanesePod101). Bảng \ref{table:2.1} so sánh các nền tảng này theo bốn tiêu chí liên quan trực tiếp tới bài toán đặt ra: (i) nội dung video theo lộ trình, (ii) hệ thống kiểm tra kiến thức ngay sau bài học, (iii) đa dạng dạng câu hỏi, và (iv) mức độ bản địa hóa cho người học Việt Nam.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{p{2.2cm} p{2.3cm} p{2.7cm} p{2.7cm} p{2.1cm}}
+\hline
+\textbf{Nền tảng} & \textbf{Nội dung video theo lộ trình} & \textbf{Kiểm tra sau bài học} & \textbf{Đa dạng dạng câu hỏi} & \textbf{Bản địa hóa cho người Việt} \\ \hline
+Duolingo & Không có & Có, dạng game hóa & Trung bình (chọn đáp án, ghép từ) & Có \\ \hline
+WaniKani & Không có & Có, dạng spaced repetition & Thấp (nhập Kanji/đọc) & Không \\ \hline
+YouTube & Phong phú nhưng rời rạc & Không có & Không có & Một phần (phụ đề) \\ \hline
+\seqsplit{JapanesePod101} & Có & Có, gắn với bài học & Trung bình & Không \\ \hline
+\textbf{NihongoFlow (đề xuất)} & Có, theo cấp độ N5--N1 & Có, ngay sau mỗi video & Cao (mở rộng theo \textit{question type}) & Có \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{So sánh NihongoFlow với các nền tảng học tiếng Nhật hiện có}
+\label{table:2.1}
+\end{table}
+
+Qua khảo sát, có thể thấy các nền tảng hiện có thường chỉ giải quyết tốt một trong hai khía cạnh: hoặc cung cấp nội dung video chất lượng (YouTube) nhưng không có cơ chế kiểm tra, hoặc có cơ chế luyện tập tốt (Duolingo, WaniKani) nhưng không gắn với nội dung video theo lộ trình. Không nền tảng nào kết hợp cả hai yếu tố trong một quy trình học khép kín \textit{xem video — làm quiz — theo dõi tiến độ}, đồng thời phục vụ riêng cho người học Việt Nam theo các cấp độ JLPT (N5--N1).
+
+Từ kết quả khảo sát, hệ thống NihongoFlow cần xây dựng tối thiểu các nhóm chức năng sau:
+\begin{itemize}
+    \item Quản lý nội dung học theo cấu trúc phân cấp Cấp độ -- Khóa học -- Bài học -- Quiz;
+    \item Phát video bài giảng có theo dõi tiến độ xem, bắt buộc xem hết video trước khi mở quiz lần đầu;
+    \item Hệ thống quiz 10 câu hỏi/bài học, chia thành nhiều nhóm dạng câu hỏi (từ vựng, nội dung, trình tự), có khả năng mở rộng thêm dạng câu hỏi mới;
+    \item Theo dõi kết quả học tập: lịch sử làm bài, xem lại đáp án đúng/sai, chuỗi ngày học liên tục (streak);
+    \item Cơ chế đăng ký khóa học, hỗ trợ cả khóa học miễn phí và khóa học trả phí qua cổng thanh toán VNPay;
+    \item Giao diện quản trị riêng biệt cho phép quản trị viên quản lý khóa học, bài học và ngân hàng câu hỏi.
+\end{itemize}
+
+\section{Tổng quan chức năng}
+\label{section:2.2}
+
+\subsection{Biểu đồ use case tổng quát}
+\label{subsection:2.2.1}
+
+Hệ thống NihongoFlow có hai tác nhân (actor) chính:
+
+\begin{itemize}
+    \item \textbf{Học viên (Student)}: người dùng đã đăng ký tài khoản, có thể đăng ký khóa học, xem video bài giảng, làm bài quiz, theo dõi kết quả học tập và thực hiện thanh toán cho các khóa học có phí.
+    \item \textbf{Quản trị viên (Admin)}: người quản lý nội dung của hệ thống, bao gồm cấp độ, khóa học, bài học và ngân hàng câu hỏi quiz. Quản trị viên không tham gia vào luồng học tập của học viên (theo quyết định phân quyền tách biệt -- xem mục \ref{subsection:2.3.5} và Chương \ref{chapter:SolutionAndContribution}).
+\end{itemize}
+
+Biểu đồ use case tổng quát của hệ thống được minh họa trong Hình \ref{fig:usecase-tongquat}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/usecase-tongquat.png}
+    \caption{Biểu đồ use case tổng quát hệ thống NihongoFlow}
+    \label{fig:usecase-tongquat}
+\end{figure}
+
+Đối với tác nhân Học viên, các use case chính bao gồm: \textit{Đăng ký tài khoản}, \textit{Đăng nhập}, \textit{Đăng xuất}, \textit{Xem danh sách khóa học theo cấp độ}, \textit{Đăng ký khóa học}, \textit{Thanh toán khóa học}, \textit{Xem video bài học}, \textit{Làm bài quiz}, \textit{Xem lịch sử và kết quả học tập}, và \textit{Theo dõi chuỗi ngày học (streak)}.
+
+Đối với tác nhân Quản trị viên, các use case chính bao gồm: \textit{Quản lý khóa học} (tạo, sửa, xóa, ẩn/hiện), \textit{Quản lý bài học} trong từng khóa học, và \textit{Quản lý câu hỏi quiz} của từng bài học.
+
+\subsection{Biểu đồ use case phân rã}
+\label{subsection:2.2.2}
+
+\subsubsection{Nhóm chức năng học tập}
+
+Nhóm chức năng học tập là nhóm chức năng trung tâm của hệ thống, bao phủ toàn bộ hành trình của học viên từ khi đăng ký tài khoản đến khi hoàn thành một bài học. Hình \ref{fig:usecase-hoctap} mô tả biểu đồ use case phân rã của nhóm chức năng này, bao gồm các use case: \textit{Đăng ký/Đăng nhập}, \textit{Xem danh sách khóa học}, \textit{Đăng ký khóa học}, \textit{Xem video bài học}, \textit{Làm bài quiz}, và \textit{Xem lại kết quả quiz}. Trong đó, use case \textit{Xem video bài học} và \textit{Làm bài quiz} có quan hệ \texttt{<<include>>} với use case \textit{Cập nhật tiến độ học tập}, vì mỗi lần học viên xem video hoặc nộp bài quiz, hệ thống đều cần cập nhật \texttt{UserLessonProgress} và chuỗi ngày học (streak).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/usecase-hoctap.png}
+    \caption{Biểu đồ use case phân rã nhóm chức năng học tập}
+    \label{fig:usecase-hoctap}
+\end{figure}
+
+\subsubsection{Nhóm chức năng thanh toán}
+
+Use case \textit{Đăng ký khóa học} ở mục trên được phân rã tiếp theo hai nhánh tùy theo khóa học là miễn phí hay trả phí, được minh họa trong Hình \ref{fig:usecase-thanhtoan}. Nếu khóa học miễn phí (\texttt{price = 0}), học viên được ghi nhận đăng ký (\texttt{UserCourseEnrollment}) ngay lập tức. Nếu khóa học có phí, hệ thống tạo một giao dịch thanh toán (\texttt{Payment}) và chuyển hướng học viên sang cổng thanh toán VNPay; sau khi VNPay xác nhận giao dịch thành công qua callback, hệ thống mới ghi nhận đăng ký khóa học cho học viên.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Hinhve/usecase-thanhtoan.png}
+    \caption{Biểu đồ use case phân rã nhóm chức năng thanh toán}
+    \label{fig:usecase-thanhtoan}
+\end{figure}
+
+\subsubsection{Nhóm chức năng quản trị}
+
+Nhóm chức năng quản trị phục vụ tác nhân Quản trị viên, được minh họa trong Hình \ref{fig:usecase-admin}, bao gồm các use case: \textit{Quản lý khóa học} (tạo/sửa/xóa/ẩn-hiện), \textit{Quản lý bài học} trong khóa học (tạo/sửa/xóa, tự động đọc thời lượng từ video YouTube), và \textit{Quản lý câu hỏi quiz} (sửa nội dung câu hỏi, đáp án và đáp án đúng cho từng câu trong số 10 câu của một quiz). Các use case \textit{Quản lý bài học} và \textit{Quản lý câu hỏi quiz} phụ thuộc vào \textit{Quản lý khóa học}, vì bài học và quiz luôn thuộc về một khóa học cụ thể.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/usecase-admin.png}
+    \caption{Biểu đồ use case phân rã nhóm chức năng quản trị}
+    \label{fig:usecase-admin}
+\end{figure}
+
+\subsection{Quy trình nghiệp vụ}
+\label{subsection:2.2.3}
+
+Quy trình nghiệp vụ quan trọng nhất của hệ thống là quy trình \textit{học viên hoàn thành một bài học}, kết hợp nhiều use case: \textit{Xem video bài học}, \textit{Cập nhật tiến độ}, \textit{Làm bài quiz}, và \textit{Cập nhật streak}. Quy trình này được mô tả sơ bộ như sau và minh họa bằng biểu đồ hoạt động trong Hình \ref{fig:activity-hoanthanh}:
+
+\begin{enumerate}
+    \item Học viên mở một bài học trong khóa học đã đăng ký. Hệ thống kiểm tra học viên đã đăng ký khóa học hay chưa; nếu chưa, chuyển hướng về trang chi tiết khóa học.
+    \item Học viên xem video bài giảng. Trong quá trình xem, hệ thống tự động lưu vị trí xem (\texttt{watchedSeconds}) định kỳ.
+    \item Khi video phát đến hết (sự kiện \texttt{ended}), hệ thống đánh dấu bài học là đã hoàn thành (nếu đây là lần xem đầu tiên), cập nhật streak của học viên, và tự động chuyển sang trang quiz của bài học.
+    \item Học viên làm 10 câu hỏi quiz, chia thành ba nhóm: từ vựng, nội dung, trình tự, sau đó nộp bài.
+    \item Hệ thống chấm điểm, lưu lại lượt làm bài (\texttt{QuizAttempt}) kèm đáp án đã chọn, so sánh điểm số với ngưỡng đạt (\texttt{passScore}) của quiz, và hiển thị kết quả cho học viên qua cửa sổ popup.
+    \item Học viên có thể quay lại trang tổng quan (\textit{dashboard}) để xem lại lịch sử làm bài, hoặc xem lại video bài học (không bị bắt buộc làm lại quiz ở các lần xem sau).
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Hinhve/activity-hoanthanh-baihoc.png}
+    \caption{Biểu đồ hoạt động quy trình hoàn thành một bài học}
+    \label{fig:activity-hoanthanh}
+\end{figure}
+
+\section{Đặc tả chức năng}
+\label{section:2.3}
+
+Trong số các use case đã trình bày ở mục \ref{section:2.2}, năm use case sau được lựa chọn để đặc tả chi tiết vì chúng đại diện cho các luồng nghiệp vụ cốt lõi và phức tạp nhất của hệ thống.
+
+\subsection{Đặc tả use case ``Đăng nhập''}
+\label{subsection:2.3.1}
+
+\textbf{Tác nhân:} Học viên, Quản trị viên.
+
+\textbf{Mô tả:} Người dùng đăng nhập vào hệ thống bằng email và mật khẩu để nhận token truy cập (access token) và token làm mới (refresh token).
+
+\textbf{Tiền điều kiện:} Người dùng đã có tài khoản trong hệ thống.
+
+\textbf{Hậu điều kiện:} Người dùng được xác thực; access token được lưu ở phía client, refresh token được lưu trong cookie \texttt{httpOnly}; người dùng được điều hướng tới trang phù hợp với vai trò (\texttt{/dashboard} đối với học viên, \texttt{/admin/khoa-hoc} đối với quản trị viên).
+
+\textbf{Luồng sự kiện chính:}
+\begin{enumerate}
+    \item Người dùng nhập email và mật khẩu, nhấn nút "Đăng nhập".
+    \item Hệ thống gửi yêu cầu \texttt{POST /api/v1/auth/login} kèm thông tin đăng nhập.
+    \item Backend kiểm tra email tồn tại và mật khẩu khớp (so sánh bằng BCrypt).
+    \item Backend sinh access token (JWT, hết hạn sau 15 phút) chứa \texttt{userId} và \texttt{role}, sinh refresh token mới và lưu vào cơ sở dữ liệu.
+    \item Backend trả về access token cùng thông tin người dùng trong nội dung phản hồi, đồng thời thiết lập refresh token vào cookie \texttt{httpOnly}.
+    \item Frontend lưu access token và thông tin người dùng vào store (Zustand), điều hướng người dùng theo vai trò.
+\end{enumerate}
+
+\textbf{Luồng rẽ nhánh:}
+\begin{itemize}
+    \item \textit{A1 -- Sai email hoặc mật khẩu:} Hệ thống trả về lỗi \texttt{UNAUTHORIZED}, frontend hiển thị thông báo "Email hoặc mật khẩu không đúng".
+    \item \textit{A2 -- Access token hết hạn khi đang sử dụng:} Frontend tự động gọi \texttt{POST /api/v1/auth/refresh} bằng refresh token trong cookie để lấy access token mới mà không yêu cầu người dùng đăng nhập lại.
+\end{itemize}
+
+\subsection{Đặc tả use case ``Đăng ký khóa học''}
+\label{subsection:2.3.2}
+
+\textbf{Tác nhân:} Học viên.
+
+\textbf{Mô tả:} Học viên đăng ký tham gia một khóa học để có thể truy cập các bài học bên trong. Nếu khóa học có phí, học viên cần thanh toán qua VNPay trước khi được ghi nhận đăng ký.
+
+\textbf{Tiền điều kiện:} Học viên đã đăng nhập; khóa học đang ở trạng thái hiển thị (\texttt{hidden = false}); học viên chưa đăng ký khóa học này.
+
+\textbf{Hậu điều kiện:} Bản ghi \texttt{UserCourseEnrollment} được tạo cho cặp (học viên, khóa học); học viên có thể truy cập tất cả bài học trong khóa học.
+
+\textbf{Luồng sự kiện chính (khóa học miễn phí):}
+\begin{enumerate}
+    \item Học viên xem trang chi tiết khóa học, nhấn nút "Đăng ký học".
+    \item Frontend gửi yêu cầu \texttt{POST /api/v1/courses/\{courseId\}/enroll}.
+    \item Backend kiểm tra học viên chưa đăng ký, tạo bản ghi \texttt{UserCourseEnrollment} với thời điểm đăng ký hiện tại.
+    \item Hệ thống trả về thành công; frontend cập nhật giao diện, mở khóa toàn bộ bài học trong khóa học.
+\end{enumerate}
+
+\textbf{Luồng sự kiện chính (khóa học có phí -- tích hợp với thanh toán VNPay):}
+\begin{enumerate}
+    \item Học viên xem trang chi tiết khóa học, thấy giá tiền và nhấn nút "Mua khoá học".
+    \item Frontend gửi yêu cầu \texttt{POST /api/v1/payments/create} kèm \texttt{courseId}.
+    \item Backend tạo bản ghi \texttt{Payment} ở trạng thái \texttt{PENDING} với mã giao dịch (\texttt{vnpTxnRef}) duy nhất, sinh URL thanh toán VNPay (ký bằng HMAC-SHA512) và trả về cho frontend.
+    \item Frontend chuyển hướng trình duyệt (\texttt{window.location.href}) sang cổng thanh toán VNPay.
+    \item Học viên hoàn tất thanh toán trên VNPay. VNPay gọi lại (\texttt{GET /api/v1/payments/vnpay-return}) tới backend kèm chữ ký giao dịch.
+    \item Backend xác thực chữ ký HMAC-SHA512; nếu hợp lệ và giao dịch thành công, cập nhật \texttt{Payment.status = SUCCESS} và tạo bản ghi \texttt{UserCourseEnrollment} cho học viên.
+    \item Backend chuyển hướng học viên về trang \texttt{/thanh-toan/ket-qua} của frontend, hiển thị kết quả thanh toán và nút "Vào học ngay" nếu thành công.
+\end{enumerate}
+
+\textbf{Luồng rẽ nhánh:}
+\begin{itemize}
+    \item \textit{A1 -- Học viên đã đăng ký khóa học:} Backend trả về lỗi, frontend ẩn nút đăng ký và hiển thị trạng thái "Đã đăng ký".
+    \item \textit{A2 -- Chữ ký VNPay không hợp lệ hoặc giao dịch thất bại:} \texttt{Payment.status = FAILED}, học viên không được ghi nhận đăng ký, trang kết quả hiển thị thông báo thất bại bằng tiếng Việt.
+\end{itemize}
+
+\subsection{Đặc tả use case ``Xem video bài học''}
+\label{subsection:2.3.3}
+
+\textbf{Tác nhân:} Học viên.
+
+\textbf{Mô tả:} Học viên xem video bài giảng (nhúng từ YouTube); hệ thống theo dõi tiến độ xem và tự động chuyển sang trang quiz khi xem hết video lần đầu.
+
+\textbf{Tiền điều kiện:} Học viên đã đăng ký khóa học chứa bài học này.
+
+\textbf{Hậu điều kiện:} \texttt{UserLessonProgress.watchedSeconds} được cập nhật; nếu là lần xem đầu tiên và xem hết video, \texttt{completed = true} và streak của học viên được cập nhật.
+
+\textbf{Luồng sự kiện chính:}
+\begin{enumerate}
+    \item Học viên mở trang bài học (\texttt{/khoa-hoc/:courseId/bai-hoc/:lessonId}).
+    \item Frontend gọi \texttt{GET /api/v1/lessons/\{lessonId\}} để lấy thông tin video và tiến độ đã lưu, video tự động phát tiếp từ vị trí \texttt{watchedSeconds} đã lưu trước đó.
+    \item Trong quá trình phát, frontend định kỳ gửi \texttt{POST /api/v1/lessons/\{lessonId\}/progress} để cập nhật \texttt{watchedSeconds} (chỉ gửi khi độ lệch thời gian $\geq$ 5 giây).
+    \item Khi video phát tới sự kiện \texttt{ended}: nếu đây là lần xem hoàn thành đầu tiên, frontend gửi yêu cầu cập nhật \texttt{completed = true}, backend cập nhật streak, và frontend tự động điều hướng sang trang quiz của bài học.
+\end{enumerate}
+
+\textbf{Luồng rẽ nhánh:}
+\begin{itemize}
+    \item \textit{A1 -- Bài học đã hoàn thành trước đó:} Khi video kết thúc, hệ thống không điều hướng sang quiz, cho phép học viên xem lại tự do.
+    \item \textit{A2 -- Video chưa được cập nhật (URL trống):} Frontend hiển thị thông báo "Video đang được cập nhật. Vui lòng quay lại sau."
+    \item \textit{A3 -- Lỗi tải video:} Frontend hiển thị thông báo "Không thể tải video. Vui lòng thử lại sau."
+\end{itemize}
+
+\subsection{Đặc tả use case ``Làm bài quiz''}
+\label{subsection:2.3.4}
+
+\textbf{Tác nhân:} Học viên.
+
+\textbf{Mô tả:} Học viên trả lời 10 câu hỏi trắc nghiệm của bài học (chia thành 3 nhóm: từ vựng, nội dung, trình tự) và nộp bài để được chấm điểm.
+
+\textbf{Tiền điều kiện:} Học viên đã đăng ký khóa học chứa bài học; quiz của bài học đã có đủ 10 câu hỏi.
+
+\textbf{Hậu điều kiện:} Một bản ghi \texttt{QuizAttempt} mới được tạo, lưu lại điểm số, đáp án đã chọn và kết quả đạt/không đạt; lịch sử làm bài của học viên được cập nhật (không xóa các lượt làm trước).
+
+\textbf{Luồng sự kiện chính:}
+\begin{enumerate}
+    \item Frontend gọi \texttt{GET /api/v1/lessons/\{lessonId\}/quiz} để lấy danh sách 10 câu hỏi (không kèm đáp án đúng), hiển thị theo 3 nhóm (\texttt{VOCABULARY}, \texttt{CONTENT}, \texttt{SEQUENCE}) với tiêu đề từng nhóm.
+    \item Học viên chọn đáp án cho từng câu hỏi, sau đó nhấn "Nộp bài".
+    \item Frontend gửi \texttt{POST /api/v1/quizzes/\{quizId\}/attempts} kèm bản đồ \texttt{questionId → optionIndex}.
+    \item Backend kiểm tra tập \texttt{questionId} gửi lên trùng khớp đối xứng (\texttt{ids.equals(questionIds)}) với tập câu hỏi của quiz; nếu không khớp, trả về lỗi \texttt{VALIDATION\_ERROR}.
+    \item Backend chấm điểm, tính tỉ lệ đúng, so sánh với \texttt{passScore} của quiz để xác định \texttt{passed}, lưu bản ghi \texttt{QuizAttempt}.
+    \item Backend trả về kết quả; frontend hiển thị popup kết quả (điểm số, đạt/không đạt, ngưỡng đạt) với nút "Về tổng quan" (và nút "Làm lại" nếu không đạt).
+\end{enumerate}
+
+\textbf{Luồng rẽ nhánh:}
+\begin{itemize}
+    \item \textit{A1 -- Học viên không trả lời đủ 10 câu:} Frontend chặn nộp bài và yêu cầu trả lời đầy đủ trước khi gửi yêu cầu lên backend.
+    \item \textit{A2 -- Học viên làm lại quiz:} Một bản ghi \texttt{QuizAttempt} mới được tạo, không ảnh hưởng tới các lượt làm trước (số lần làm không giới hạn).
+\end{itemize}
+
+\subsection{Đặc tả use case ``Quản lý câu hỏi quiz'' (Quản trị viên)}
+\label{subsection:2.3.5}
+
+\textbf{Tác nhân:} Quản trị viên.
+
+\textbf{Mô tả:} Quản trị viên xem và chỉnh sửa nội dung, các phương án trả lời và đáp án đúng của từng câu hỏi trong quiz của một bài học.
+
+\textbf{Tiền điều kiện:} Người dùng đã đăng nhập với vai trò \texttt{ADMIN}; bài học đã có quiz với 10 câu hỏi được tạo từ dữ liệu khởi tạo (seed).
+
+\textbf{Hậu điều kiện:} Nội dung câu hỏi, các phương án và/hoặc đáp án đúng được cập nhật trong cơ sở dữ liệu; thay đổi có hiệu lực ngay với học viên ở lượt làm quiz tiếp theo.
+
+\textbf{Luồng sự kiện chính:}
+\begin{enumerate}
+    \item Quản trị viên truy cập trang \texttt{/admin/khoa-hoc/:courseId/bai-hoc/:lessonId/quiz}.
+    \item Frontend gọi \texttt{GET /api/v1/admin/lessons/\{lessonId\}/quiz}, nhận về 10 câu hỏi (kèm \texttt{correctOption}) chia theo 3 nhóm: VOCABULARY (4 câu), CONTENT (3 câu), SEQUENCE (3 câu).
+    \item Quản trị viên chọn một câu hỏi, nhấn nút sửa để mở modal chỉnh sửa nội dung câu hỏi, 4 phương án trả lời và chọn phương án đúng.
+    \item Quản trị viên lưu thay đổi; frontend gửi \texttt{PUT /api/v1/admin/questions/\{questionId\}} kèm \texttt{content}, \texttt{options}, \texttt{correctOption}, \texttt{orderIndex}, \texttt{questionType}.
+    \item Backend cập nhật bản ghi \texttt{Question} tương ứng và trả về dữ liệu đã cập nhật; frontend cập nhật giao diện.
+\end{enumerate}
+
+\textbf{Luồng rẽ nhánh:}
+\begin{itemize}
+    \item \textit{A1 -- \texttt{correctOption} nằm ngoài khoảng 4 phương án:} Backend trả về lỗi \texttt{VALIDATION\_ERROR} thông qua \texttt{@Valid}.
+    \item \textit{A2 -- Người dùng không có vai trò ADMIN truy cập API:} Backend trả về lỗi \texttt{FORBIDDEN}, frontend (\texttt{AdminRoute}) chặn truy cập trang trước khi gọi API.
+\end{itemize}
+
+\textit{Lưu ý:} Quản trị viên chỉ chỉnh sửa nội dung của 10 câu hỏi đã có sẵn theo cấu trúc cố định (4 VOCABULARY + 3 CONTENT + 3 SEQUENCE), không thêm/xóa câu hỏi -- quyết định này được giải thích trong Chương \ref{chapter:Introduction}.
+
+\section{Yêu cầu phi chức năng}
+\label{section:2.4}
+
+\begin{itemize}
+    \item \textbf{Bảo mật:} Mật khẩu người dùng được băm bằng BCrypt; xác thực bằng JWT (access token 15 phút) kết hợp refresh token lưu trong cookie \texttt{httpOnly} với cơ chế xoay vòng (token rotation); phân quyền RBAC tách biệt hoàn toàn giữa vai trò STUDENT và ADMIN ở cả backend (\texttt{SecurityConfig}) và frontend (route guard); callback thanh toán VNPay được xác thực bằng chữ ký HMAC-SHA512.
+    \item \textbf{Hiệu năng:} Các truy vấn thống kê (ví dụ đếm số khóa học theo từng cấp độ) được tối ưu thành truy vấn gộp (\texttt{GROUP BY}) thay vì truy vấn lặp theo từng bản ghi (vấn đề N+1), được trình bày chi tiết tại Chương \ref{chapter:SolutionAndContribution}.
+    \item \textbf{Khả năng mở rộng:} Cấu trúc bảng \texttt{questions} tổng quát hóa theo \texttt{questionType} và cột \texttt{options} dạng JSON cho phép bổ sung dạng câu hỏi mới (nghe, điền từ, nối cặp, v.v.) mà không cần thay đổi schema cơ sở dữ liệu.
+    \item \textbf{Toàn vẹn dữ liệu:} Lịch sử làm bài quiz (\texttt{QuizAttempt}) không bao giờ bị xóa; xóa khóa học/bài học sẽ tự động xóa theo (\texttt{ON DELETE CASCADE}) các bài học, quiz, câu hỏi, lượt làm bài và tiến độ liên quan, đảm bảo không còn dữ liệu mồ côi; lược đồ cơ sở dữ liệu được quản lý phiên bản bằng Flyway.
+    \item \textbf{Tính khả dụng và trải nghiệm người dùng:} Toàn bộ giao diện bằng tiếng Việt; mọi thao tác đều có phản hồi trạng thái (loading, lỗi, thành công); thiết kế desktop-first, hỗ trợ responsive cơ bản; nội dung tiếng Nhật hiển thị tối thiểu 14px với font Noto Sans JP để đảm bảo dễ đọc.
+    \item \textbf{Khả năng triển khai:} Hệ thống chạy độc lập trên máy chủ với MySQL (qua Docker Compose), backend Spring Boot và frontend React build tĩnh, không phụ thuộc dịch vụ lưu trữ video bên thứ ba trả phí (sử dụng YouTube embed).
+\end{itemize}
+
+Chương tiếp theo trình bày nền tảng lý thuyết và các công nghệ được lựa chọn để giải quyết các yêu cầu chức năng và phi chức năng đã xác định ở trên.
+
+\end{document}

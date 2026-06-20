@@ -1,0 +1,52 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương này giới thiệu tổng quan về đề tài, bao gồm bối cảnh hình thành vấn đề, mục tiêu và phạm vi nghiên cứu, định hướng giải pháp, và bố cục của báo cáo. Các nội dung được trình bày lần lượt trong các mục từ \ref{section:1.1} đến \ref{section:1.4}.
+
+\section{Đặt vấn đề}
+\label{section:1.1}
+
+Trong bối cảnh hội nhập kinh tế và giao lưu văn hóa ngày càng sâu rộng giữa Việt Nam và Nhật Bản, nhu cầu học tiếng Nhật tại Việt Nam tăng trưởng mạnh và ổn định trong nhiều năm qua. Theo khảo sát của Quỹ Giao lưu Quốc tế Nhật Bản (Japan Foundation) năm 2021, Việt Nam có hơn 174.000 người học tiếng Nhật, xếp thứ 8 trên toàn thế giới \cite{japanfoundation2021}. Nhu cầu này không chỉ đến từ sinh viên và người đi làm có định hướng xuất khẩu lao động hay du học, mà còn từ lượng lớn lao động đang làm việc tại hơn 4.500 doanh nghiệp có vốn đầu tư Nhật Bản tại Việt Nam \cite{jetro2023}. Quy mô người học lớn như vậy đặt ra yêu cầu cấp thiết về các công cụ và nền tảng học tập hiệu quả, linh hoạt về thời gian và địa điểm.
+
+Tuy nhiên, việc học tiếng Nhật đặt ra những thách thức đặc thù so với nhiều ngôn ngữ khác. Người học phải đồng thời tiếp thu ba hệ thống chữ viết (Hiragana, Katakana và Kanji), nắm vững ngữ pháp có cấu trúc khác biệt hoàn toàn so với tiếng Việt, và rèn luyện khả năng nghe — nhận diện ngữ điệu, tốc độ nói và ngữ cảnh hội thoại tự nhiên. Những yêu cầu này đòi hỏi người học phải tiếp xúc thường xuyên với ngôn ngữ trong ngữ cảnh thực tế, không thể chỉ dựa vào việc ghi nhớ lý thuyết.
+
+Học qua video là một hình thức đáp ứng tốt nhu cầu tiếp xúc ngôn ngữ trong ngữ cảnh thực tế, đồng thời phù hợp với lịch học linh hoạt của phần lớn người học. Dù vậy, học qua video đơn thuần tồn tại một bất cập nghiêm trọng: người học tiếp nhận nội dung theo chiều thụ động mà không có cơ chế buộc phải xử lý và củng cố kiến thức ngay sau đó. Nghiên cứu về khoa học nhận thức cho thấy kiến thức chỉ được chuyển hóa vào bộ nhớ dài hạn một cách hiệu quả khi người học chủ động truy xuất thông tin ngay sau khi tiếp thu — một nguyên lý được gọi là \textit{active recall} \cite{roediger2006}. Khi không có bước kiểm tra này, người học có xu hướng đánh giá sai mức độ hiểu bài của bản thân, dẫn đến tình trạng quên kiến thức nhanh và thiếu cơ sở để xác định phần nội dung cần ôn luyện thêm.
+
+Bài toán đặt ra là xây dựng một nền tảng kết hợp học qua video với hệ thống kiểm tra kiến thức có cấu trúc ngay sau mỗi video, trong đó hệ thống kiểm tra phải đủ linh hoạt để hỗ trợ các dạng câu hỏi đặc thù của tiếng Nhật như nghe và nhận diện, đọc và chọn đáp án, điền ký tự, hay nối cặp từ vựng. Nếu được giải quyết, bài toán này mang lại lợi ích trực tiếp cho người học tiếng Nhật ở mọi trình độ — từ người mới bắt đầu đến người ôn thi JLPT — đồng thời cung cấp cho giảng viên và người xây dựng nội dung một công cụ quản lý và phân phối tài nguyên học tập có kiểm soát chất lượng. Về mặt rộng hơn, mô hình kết hợp video và quiz kiến thức theo cấu trúc có thể được áp dụng cho việc học bất kỳ ngôn ngữ nào khác, hoặc mở rộng sang các lĩnh vực đào tạo trực tuyến có yêu cầu đánh giá kiến thức sau từng đơn vị nội dung.
+
+\section{Mục tiêu và phạm vi đề tài}
+\label{section:1.2}
+
+Hiện nay, một số nền tảng học tiếng Nhật trực tuyến đã được phát triển và triển khai rộng rãi. Duolingo cung cấp các bài học ngắn dưới dạng trò chơi hóa, phù hợp để xây dựng thói quen học nhưng thiếu cấu trúc theo lộ trình học bài bản. WaniKani tập trung vào việc ghi nhớ Kanji và từ vựng thông qua phương pháp lặp lại ngắt quãng (spaced repetition), nhưng không tích hợp nội dung nghe nhìn. Các nền tảng chia sẻ video như YouTube có kho nội dung tiếng Nhật phong phú, song hoàn toàn không có hệ thống theo dõi tiến độ hay kiểm tra kiến thức sau mỗi bài học. Một số trang học trực tuyến như JapanesePod101 có kết hợp video và bài tập, tuy nhiên nội dung chủ yếu được thiết kế cho người dùng quốc tế, chưa được bản địa hóa cho người học Việt Nam.
+
+Qua phân tích các nền tảng trên, có thể thấy ba hạn chế chính: (i) thiếu sự kết hợp có cấu trúc giữa nội dung video và hệ thống luyện tập gắn liền ngay sau mỗi video; (ii) hệ thống bài kiểm tra còn đơn điệu, chưa hỗ trợ đa dạng dạng câu hỏi phù hợp với đặc thù tiếng Nhật; và (iii) chưa có nền tảng nào được thiết kế riêng cho người học Việt Nam với lộ trình theo chuẩn năng lực JLPT.
+
+Trên cơ sở đó, đề tài hướng đến xây dựng một nền tảng học tiếng Nhật trực tuyến kết hợp video và hệ thống quiz tương tác, với các chức năng chính gồm: (i) quản lý khóa học và bài học theo cấp độ từ sơ cấp đến N1; (ii) phát video bài học có theo dõi tiến độ xem; (iii) hệ thống quiz sau mỗi video hỗ trợ nhiều dạng câu hỏi và có khả năng mở rộng; (iv) theo dõi kết quả học tập, chuỗi ngày học liên tục (streak) và lịch sử làm bài của người dùng; và (v) cơ chế đăng ký khóa học, bao gồm cả khóa học miễn phí và khóa học trả phí thông qua cổng thanh toán trực tuyến.
+
+Phạm vi đề tài giới hạn ở việc xây dựng hệ thống cho hai nhóm người dùng chính là quản trị viên và học viên, trên nền tảng web. Các chức năng ngoài phạm vi bao gồm học trực tiếp qua livestream và hệ thống gợi ý lộ trình học dựa trên trí tuệ nhân tạo.
+
+\section{Định hướng giải pháp}
+\label{section:1.3}
+
+Để giải quyết các hạn chế đã xác định, đề tài áp dụng kiến trúc ứng dụng web phân tách frontend và backend theo mô hình RESTful API. Theo mô hình này, backend đảm nhận xử lý nghiệp vụ và quản lý dữ liệu, trong khi frontend chịu trách nhiệm hiển thị giao diện và tương tác với người dùng; hai thành phần giao tiếp với nhau thông qua các API chuẩn HTTP. Kiến trúc này được lựa chọn vì cho phép phát triển song song hai thành phần, dễ bảo trì và mở rộng trong tương lai.
+
+Phía backend được xây dựng bằng Spring Boot — một framework Java trưởng thành với hệ sinh thái phong phú, hỗ trợ tốt cho việc xây dựng RESTful API và tích hợp bảo mật; xác thực người dùng sử dụng JWT kết hợp cơ chế xoay vòng refresh token để hạn chế rủi ro lộ token. Dữ liệu được lưu trữ trên MySQL với thiết kế schema linh hoạt, trong đó hệ thống quiz được tổ chức theo dạng tổng quát hóa kiểu câu hỏi, cho phép bổ sung dạng câu hỏi mới mà không cần thay đổi cấu trúc cơ sở dữ liệu. Phía frontend sử dụng React — một thư viện JavaScript phổ biến với khả năng xây dựng giao diện theo dạng component tái sử dụng, kết hợp với TanStack Query để quản lý dữ liệu lấy từ API và Zustand để quản lý trạng thái xác thực phía client, phù hợp với yêu cầu quản lý nhiều loại câu hỏi có giao diện khác nhau.
+
+Đóng góp chính của đề tài là một hệ thống web hoàn chỉnh cho phép học tiếng Nhật qua video gắn kết với quiz đánh giá kiến thức, trong đó hệ thống quiz được thiết kế mở rộng để hỗ trợ nhiều dạng câu hỏi khác nhau mà không phá vỡ cấu trúc hiện tại.
+
+\section{Bố cục đồ án}
+\label{section:1.4}
+
+Phần còn lại của báo cáo đồ án tốt nghiệp này được tổ chức như sau.
+
+Chương 2 trình bày kết quả khảo sát và phân tích yêu cầu của hệ thống, bao gồm các yêu cầu chức năng và phi chức năng được xác định thông qua phân tích người dùng, từ đó làm cơ sở cho các quyết định thiết kế ở các chương tiếp theo.
+
+Chương 3 giới thiệu nền tảng lý thuyết và các công nghệ được sử dụng trong đề tài, bao gồm kiến trúc RESTful API, framework Spring Boot, thư viện React và hệ quản trị cơ sở dữ liệu MySQL, cùng với lý do lựa chọn từng công nghệ.
+
+Chương 4 trình bày toàn bộ quá trình phân tích thiết kế, triển khai và đánh giá hệ thống, bao gồm thiết kế cơ sở dữ liệu, kiến trúc hệ thống, thiết kế API, giao diện người dùng và kết quả kiểm thử.
+
+Chương 5 trình bày các giải pháp và đóng góp nổi bật của đề tài, tập trung vào cơ chế thiết kế hệ thống quiz linh hoạt và khả năng mở rộng của kiến trúc tổng thể.
+
+Chương 6 tổng kết các kết quả đạt được của đề tài, đánh giá những hạn chế còn tồn tại và đề xuất các hướng phát triển trong tương lai.
+
+\end{document}

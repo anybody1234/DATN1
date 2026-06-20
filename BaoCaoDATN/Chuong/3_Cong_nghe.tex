@@ -1,0 +1,65 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương này giới thiệu nền tảng lý thuyết và các công nghệ được sử dụng để xây dựng hệ thống NihongoFlow. Với mỗi công nghệ, chương trình bày vấn đề/yêu cầu đã xác định ở Chương \ref{chapter:Related_works} mà công nghệ đó giải quyết, các lựa chọn thay thế đã được cân nhắc, và lý do lựa chọn cuối cùng.
+
+\section{Kiến trúc RESTful API}
+\label{section:3.1}
+
+Để giải quyết yêu cầu phân tách rõ ràng giữa xử lý nghiệp vụ và hiển thị giao diện (Chương \ref{chapter:Related_works}), đề tài sử dụng kiến trúc RESTful API \cite{fielding2000rest}. Theo kiến trúc này, backend cung cấp các tài nguyên (resource) như \texttt{courses}, \texttt{lessons}, \texttt{quizzes} thông qua các phương thức HTTP chuẩn (\texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{PATCH}, \texttt{DELETE}); mỗi phản hồi đều ở định dạng JSON và được bọc trong một "envelope" thống nhất gồm trường \texttt{success}, \texttt{data} (hoặc \texttt{error}) và \texttt{message} tùy chọn.
+
+Lựa chọn thay thế được cân nhắc là GraphQL, cho phép client tự định nghĩa cấu trúc dữ liệu cần lấy. Tuy nhiên, GraphQL đòi hỏi thiết lập schema phức tạp hơn và không cần thiết với quy mô API của đồ án (khoảng 30 endpoint với cấu trúc dữ liệu tương đối ổn định). Vì vậy, RESTful API với envelope chuẩn hóa được lựa chọn vì đơn giản, dễ kiểm thử (qua Postman/curl) và phù hợp với quy mô một sinh viên phát triển độc lập.
+
+\section{Backend: Spring Boot, Spring Security và Spring Data JPA}
+\label{section:3.2}
+
+Backend của hệ thống đảm nhận toàn bộ xử lý nghiệp vụ: quản lý nội dung học, chấm điểm quiz, theo dõi tiến độ, xác thực người dùng và xử lý thanh toán. Đề tài sử dụng Spring Boot 3 \cite{springboot} -- một framework Java phổ biến cho phép xây dựng ứng dụng web độc lập (embedded server) với cấu hình tối thiểu.
+
+\textbf{Spring Data JPA} được dùng làm tầng truy cập dữ liệu (lớp \textit{repository}), ánh xạ các thực thể Java sang bảng MySQL thông qua Hibernate, giúp giảm lượng mã truy vấn thủ công cho các thao tác CRUD và các truy vấn tùy biến (ví dụ đếm số khóa học theo cấp độ -- xem Chương \ref{chapter:SolutionAndContribution}).
+
+\textbf{Spring Security} kết hợp với JWT (JSON Web Token) \cite{jwtrfc7519} được dùng để xác thực và phân quyền. Mỗi request tới API (trừ các endpoint công khai) phải kèm access token trong header \texttt{Authorization: Bearer <token>}; một bộ lọc (\texttt{JwtAuthenticationFilter}) giải mã token, xác định \texttt{userId} và \texttt{role}, từ đó \texttt{SecurityConfig} áp dụng chính sách phân quyền theo vai trò (RBAC) cho từng nhóm endpoint (\texttt{/api/v1/admin/**} chỉ dành cho ADMIN, \texttt{/api/v1/users/me/**} chỉ dành cho STUDENT).
+
+Các lựa chọn thay thế được cân nhắc gồm Node.js với Express/NestJS, và Python với Django REST Framework. Cả hai đều có hệ sinh thái tốt cho xây dựng REST API, tuy nhiên Spring Boot được lựa chọn vì: (i) hệ sinh thái Spring Security cung cấp sẵn các thành phần xác thực JWT, mã hóa mật khẩu (BCrypt) và phân quyền theo vai trò một cách tường minh, dễ kiểm soát; (ii) Spring Data JPA giúp định nghĩa schema thông qua entity Java, thuận tiện khi kết hợp với Flyway để quản lý migration; (iii) sinh viên đã có kinh nghiệm với Java từ chương trình đào tạo.
+
+\section{Cơ sở dữ liệu: MySQL và Flyway}
+\label{section:3.3}
+
+Dữ liệu của hệ thống có cấu trúc quan hệ rõ ràng: nội dung được tổ chức theo cây phân cấp Cấp độ -- Khóa học -- Bài học -- Quiz -- Câu hỏi, và có nhiều ràng buộc khóa ngoại quan trọng (ví dụ một lượt làm quiz luôn gắn với một quiz và một người dùng cụ thể). Vì vậy, đề tài sử dụng MySQL \cite{mysqldocs} -- một hệ quản trị cơ sở dữ liệu quan hệ phổ biến, có hỗ trợ tốt cho kiểu dữ liệu JSON (dùng cho cột \texttt{options} của câu hỏi và \texttt{answers} của lượt làm bài).
+
+\textbf{Flyway} được sử dụng để quản lý phiên bản lược đồ cơ sở dữ liệu thông qua các tệp migration có đánh số thứ tự (V1--V8), cho phép áp dụng các thay đổi schema (thêm cột, thêm bảng, thêm ràng buộc \texttt{ON DELETE CASCADE}) một cách có kiểm soát và có thể tái lập trên nhiều môi trường.
+
+Lựa chọn thay thế được cân nhắc là cơ sở dữ liệu NoSQL như MongoDB, phù hợp khi dữ liệu có cấu trúc linh hoạt, thay đổi thường xuyên. Tuy nhiên, dữ liệu của hệ thống (người dùng, khóa học, bài học, lượt làm quiz) có quan hệ chặt chẽ và cần đảm bảo tính toàn vẹn tham chiếu (ví dụ không thể có lượt làm quiz mà không có quiz tương ứng), nên cơ sở dữ liệu quan hệ phù hợp hơn. Tính linh hoạt cho các dạng câu hỏi khác nhau được giải quyết bằng cột JSON trong MySQL thay vì chuyển hẳn sang mô hình NoSQL.
+
+\section{Frontend: React, TypeScript, TanStack Query và Zustand}
+\label{section:3.4}
+
+Frontend của hệ thống là một ứng dụng SPA được xây dựng bằng React \cite{reactdocs} với Vite làm công cụ build, và TypeScript ở chế độ \textit{strict} để đảm bảo an toàn kiểu dữ liệu khi làm việc với nhiều loại DTO trả về từ backend.
+
+\textbf{TanStack Query} được dùng để quản lý dữ liệu lấy từ API (server state): caching, tự động làm mới, và đồng bộ trạng thái loading/error cho các thao tác như lấy danh sách khóa học, nộp bài quiz, hay các thao tác CRUD phía quản trị. Toàn bộ \texttt{useQuery}/\texttt{useMutation} được tổ chức trong các custom hook theo domain (\texttt{useCourse}, \texttt{useQuiz}, \texttt{useDashboard}, v.v.), tách biệt khỏi tầng hiển thị.
+
+\textbf{Zustand} được dùng để quản lý trạng thái xác thực phía client (thông tin người dùng và access token hiện tại) -- một trạng thái toàn cục, đơn giản, không cần đến các khái niệm action/reducer phức tạp như Redux.
+
+Lựa chọn thay thế được cân nhắc gồm Vue.js và Angular cho framework giao diện, và Redux Toolkit cho quản lý state. React được lựa chọn vì mô hình component dựa trên hàm và hook phù hợp với việc xây dựng nhiều loại giao diện câu hỏi quiz có thể tái sử dụng; TanStack Query + Zustand được chọn thay Redux vì tách biệt rõ ràng giữa "dữ liệu từ server" (do TanStack Query quản lý, có caching và invalidation) và "trạng thái client thuần túy" (do Zustand quản lý), giảm lượng mã boilerplate so với Redux.
+
+\section{Giao diện: Tailwind CSS và shadcn/ui}
+\label{section:3.5}
+
+Để đáp ứng yêu cầu về giao diện tối giản, nhất quán và dễ bảo trì, đề tài sử dụng Tailwind CSS \cite{tailwindcss} -- một thư viện utility-first CSS cho phép định nghĩa style trực tiếp qua class trong JSX mà không cần viết file CSS riêng cho từng component. Bộ thành phần giao diện cơ bản (nút bấm, input, badge, v.v.) sử dụng shadcn/ui làm nền, được tùy biến lại theo bảng màu tối tối giản (theo phong cách thiết kế của Resend.com) thông qua các biến CSS dùng chung trong \texttt{globals.css}.
+
+Lựa chọn thay thế là CSS Module hoặc styled-components cho từng component riêng lẻ. Tailwind CSS được chọn vì giúp duy trì tính nhất quán của design system (màu sắc, khoảng cách theo lưới 8px) thông qua một bộ token dùng chung, đồng thời giảm số lượng file CSS cần quản lý trong một dự án có nhiều trang.
+
+\section{Phát video: YouTube IFrame API}
+\label{section:3.6}
+
+Yêu cầu phát video bài giảng có theo dõi tiến độ và tự động chuyển sang quiz khi xem hết video (Chương \ref{chapter:Related_works}) đòi hỏi truy cập được các sự kiện phát video (bắt đầu, tạm dừng, kết thúc) và thời lượng video. Đề tài sử dụng YouTube IFrame Player API \cite{youtubeapi}, cho phép nhúng video YouTube với bộ điều khiển tùy biến hoàn toàn (ẩn control mặc định, dùng overlay riêng cho play/pause/seek/mute/fullscreen) và lắng nghe sự kiện \texttt{onStateChange} để phát hiện khi video kết thúc (\texttt{ENDED}).
+
+Các lựa chọn thay thế đã được cân nhắc và quyết định không sử dụng gồm Cloudinary (lưu trữ và streaming video HLS) và Cloudflare Stream. Cả hai đều yêu cầu chi phí lưu trữ/băng thông và cấu hình credentials bổ sung, trong khi đồ án được đánh giá theo tính năng hệ thống chứ không theo hạ tầng lưu trữ video. YouTube embed cho phép tận dụng kho video tiếng Nhật chất lượng cao có sẵn, miễn phí, đồng thời IFrame API vẫn cung cấp đầy đủ sự kiện cần thiết để xây dựng luồng "xem hết video → tự động chuyển quiz" mà không cần nút "Đã xem xong" thủ công.
+
+\section{Thanh toán trực tuyến: VNPay}
+\label{section:3.7}
+
+Để đáp ứng yêu cầu hỗ trợ khóa học có phí (Chương \ref{chapter:Related_works}), đề tài tích hợp cổng thanh toán VNPay \cite{vnpaydocs} -- cổng thanh toán nội địa phổ biến tại Việt Nam, sử dụng môi trường sandbox cho mục đích phát triển và kiểm thử. Quy trình thanh toán gồm hai bước: (i) backend tạo URL thanh toán có chữ ký HMAC-SHA512 dựa trên thông tin giao dịch và mã bí mật (\textit{hash secret}); (ii) sau khi người dùng thanh toán, VNPay gọi lại endpoint \texttt{/api/v1/payments/vnpay-return}, backend xác thực lại chữ ký trước khi ghi nhận giao dịch thành công và đăng ký khóa học cho người dùng.
+
+Lựa chọn thay thế là các cổng thanh toán quốc tế như Stripe hoặc PayPal. Tuy nhiên các cổng này yêu cầu tài khoản doanh nghiệp đã xác minh và chủ yếu hỗ trợ thẻ quốc tế, không phù hợp với đối tượng người dùng Việt Nam mà hệ thống hướng tới. VNPay sandbox cho phép thử nghiệm đầy đủ luồng thanh toán mà không cần tài khoản doanh nghiệp thật, phù hợp với phạm vi đồ án tốt nghiệp.
+
+\end{document}

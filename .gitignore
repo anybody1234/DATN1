@@ -1,0 +1,28 @@
+# Backend (Maven / Spring Boot)
+backend/target/
+backend/jdk-21_windows-x64_bin/
+*.class
+*.log
+
+# Frontend (Vite / Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+*.aux
+*.out
+*.toc
+*.lof
+*.lot
+*.blg
+*.run.xml

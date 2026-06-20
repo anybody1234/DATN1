@@ -1,0 +1,90 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương này trình bày sáu giải pháp và đóng góp được tác giả đầu tư nhiều công sức nhất trong quá trình thực hiện đồ án. Mỗi mục được trình bày theo cấu trúc: dẫn dắt vấn đề (gắn với yêu cầu đã nêu ở Chương \ref{chapter:Related_works}), giải pháp đã thiết kế và triển khai, và kết quả đạt được.
+
+\section{Thiết kế hệ thống quiz mở rộng theo kiểu câu hỏi}
+\label{section:5.1}
+
+\textbf{Vấn đề.} Mục \ref{section:2.4} (yêu cầu phi chức năng) chỉ ra rằng hệ thống quiz cần hỗ trợ nhiều dạng câu hỏi khác nhau phù hợp với đặc thù học tiếng Nhật (từ vựng, nội dung video, trình tự sự kiện), và phải có khả năng mở rộng thêm dạng câu hỏi mới (ví dụ nghe-chọn đáp án, điền từ, nối cặp) trong tương lai mà không phá vỡ hệ thống hiện có. Một thiết kế CSDL "cứng" -- ví dụ tạo riêng một bảng cho mỗi dạng câu hỏi -- sẽ khiến việc thêm dạng câu hỏi mới đòi hỏi thay đổi schema, viết lại truy vấn, và sửa đổi cả hai phía backend lẫn frontend.
+
+\textbf{Giải pháp.} Như đã giới thiệu ở Mục \ref{subsection:4.2.2}, bảng \texttt{questions} được thiết kế tổng quát với ba thành phần cốt lõi:
+
+\begin{itemize}
+    \item Cột \texttt{options} kiểu JSON, lưu mảng đáp án dưới dạng chuỗi -- cho phép số lượng và nội dung đáp án linh hoạt mà không cần thêm cột.
+    \item Cột \texttt{question\_type} (enum: \texttt{VOCABULARY}, \texttt{CONTENT}, \texttt{SEQUENCE}) phân loại câu hỏi theo mục đích sư phạm, được thêm vào schema thông qua migration V2 mà không ảnh hưởng tới dữ liệu hiện có.
+    \item Cột \texttt{order\_index} xác định vị trí câu hỏi trong quiz (1--10), được dùng để nhóm và hiển thị câu hỏi theo từng phần trên giao diện (component \texttt{QuizSection}).
+\end{itemize}
+
+Phía backend, \texttt{QuizService.submitQuiz(...)} chấm điểm dựa trên việc so sánh \texttt{answers} (gửi từ client, dạng \texttt{Map<questionId, selectedOption>}) với \texttt{correctOption} của từng \texttt{Question}, không phụ thuộc vào \texttt{questionType}. Việc kiểm tra tính hợp lệ của bộ câu trả lời sử dụng so sánh đối xứng hai chiều \texttt{ids.equals(questionIds)} -- đảm bảo tập câu hỏi gửi lên không thiếu và không thừa so với quiz, thay vì chỉ kiểm tra một chiều bằng \texttt{containsAll} (vốn cho phép bỏ sót câu hỏi mà vẫn được coi là hợp lệ). Phía frontend, \texttt{QuestionType} được định nghĩa là một union type TypeScript, và bảng tra cứu \texttt{QUESTION\_SECTION\_META} (đặt tại \texttt{src/lib/quiz-constants.ts}) ánh xạ mỗi \texttt{questionType} sang nhãn hiển thị và icon tương ứng -- khi cần thêm một dạng câu hỏi mới, chỉ cần bổ sung một entry vào bảng tra cứu này và thêm giá trị enum tương ứng ở backend.
+
+\textbf{Kết quả.} Cấu trúc 10 câu hỏi/quiz (4 VOCABULARY + 3 CONTENT + 3 SEQUENCE) được áp dụng nhất quán cho toàn bộ 24 quiz (240 câu hỏi) trong dữ liệu mẫu. Việc tổng quát hóa theo \texttt{questionType} giúp giao diện làm bài và giao diện quản trị câu hỏi (\texttt{AdminQuizPage}) dùng chung một component hiển thị (\texttt{QuizSection}) cho cả ba nhóm câu hỏi, đồng thời logic chấm điểm không cần phân nhánh theo loại câu hỏi.
+
+\section{Phân quyền tách biệt giữa học viên và quản trị viên (Hướng A)}
+\label{section:5.2}
+
+\textbf{Vấn đề.} Hệ thống có hai vai trò người dùng với tập chức năng gần như không giao nhau: học viên (xem nội dung, làm quiz, theo dõi tiến độ) và quản trị viên (CRUD nội dung, quản lý câu hỏi). Một thiết kế "admin = học viên có thêm quyền" (gọi là Hướng B trong quá trình thiết kế) sẽ khiến mọi trang và API phía học viên phải kiểm tra thêm điều kiện rẽ nhánh theo vai trò, làm tăng độ phức tạp và nguy cơ rò rỉ chức năng quản trị sang giao diện học viên hoặc ngược lại.
+
+\textbf{Giải pháp.} Đề tài lựa chọn Hướng A -- tách biệt hoàn toàn hai luồng ADMIN và STUDENT, được thực thi ở hai tầng độc lập:
+
+\begin{itemize}
+    \item \textbf{Tầng backend (\texttt{SecurityConfig})}: định nghĩa các nhóm endpoint theo tiền tố đường dẫn -- toàn bộ \texttt{/api/v1/admin/**} yêu cầu vai trò \texttt{ADMIN}; các endpoint enrollment, tiến độ học, lịch sử làm quiz và \texttt{/api/v1/users/me/**} yêu cầu vai trò \texttt{STUDENT}. Các endpoint truy cập nội dung bài học/quiz kiểm tra thêm điều kiện đăng ký khóa học (\texttt{enrollment}) đối với \texttt{STUDENT}, trong khi \texttt{ADMIN} được bỏ qua điều kiện này (bypass) để có thể xem trước nội dung khi chỉnh sửa.
+    \item \textbf{Tầng frontend}: hai route guard riêng biệt -- \texttt{ProtectedRoute} bảo vệ các route học viên (kiểm tra đã đăng nhập và vai trò \texttt{STUDENT}; nếu là \texttt{ADMIN} thì chuyển hướng sang \texttt{/admin/khoa-hoc}), và \texttt{AdminRoute} bảo vệ các route \texttt{/admin/*} (chặn \texttt{STUDENT}, chuyển hướng về \texttt{/dashboard}). Sau khi đăng nhập, hướng điều hướng mặc định cũng được phân theo vai trò: \texttt{ADMIN} \(\to\) \texttt{/admin/khoa-hoc}, \texttt{STUDENT} \(\to\) \texttt{/dashboard}.
+\end{itemize}
+
+\textbf{Kết quả.} Hai luồng giao diện (\texttt{Layout} cho học viên và \texttt{AdminLayout} cho quản trị viên) hoàn toàn độc lập về điều hướng, không chia sẻ thanh điều hướng (\texttt{Navbar}), giúp loại bỏ các điều kiện rẽ nhánh theo vai trò trong từng component. Việc kiểm tra thủ công cho thấy: tài khoản STUDENT không thể truy cập bất kỳ route hay API nào dưới \texttt{/admin/**}; tài khoản ADMIN không bị áp dụng ràng buộc enrollment khi truy cập nội dung bài học.
+
+\section{Cơ chế xác thực JWT với refresh token xoay vòng}
+\label{section:5.3}
+
+\textbf{Vấn đề.} Mục \ref{section:2.4} đặt ra yêu cầu bảo mật: hệ thống cần xác thực người dùng qua API mà không lưu trạng thái phiên (session) phía server, đồng thời hạn chế thiệt hại nếu access token bị lộ. Nếu sử dụng một token có thời hạn dài cho mọi request, kẻ tấn công đánh cắp được token sẽ có quyền truy cập trong suốt thời gian dài; ngược lại, nếu dùng token có thời hạn ngắn nhưng bắt người dùng đăng nhập lại liên tục thì trải nghiệm sử dụng kém.
+
+\textbf{Giải pháp.} Hệ thống áp dụng mô hình hai loại token: \textit{access token} (JWT, thời hạn 15 phút) được gửi trong header \texttt{Authorization: Bearer <token>} cho mỗi request, và \textit{refresh token} (thời hạn 7 ngày) được lưu trong cookie \texttt{httpOnly} -- không thể truy cập từ JavaScript phía client, hạn chế nguy cơ XSS đánh cắp token. Khi access token hết hạn, frontend (thông qua interceptor của \texttt{lib/axios.ts}) tự động gọi \texttt{POST /api/auth/refresh}; backend xác thực refresh token, \textbf{thu hồi refresh token cũ và phát hành một cặp token mới} (cơ chế xoay vòng -- rotation). Nếu một refresh token đã bị thu hồi nhưng vẫn được sử dụng (dấu hiệu token bị đánh cắp và dùng lại), backend từ chối và yêu cầu đăng nhập lại. Khóa bí mật dùng để ký JWT (\texttt{jwt.secret}) được bắt buộc cấu hình qua biến môi trường -- nếu thiếu, ứng dụng sẽ không khởi động được (\texttt{IllegalStateException}) thay vì sử dụng giá trị mặc định không an toàn.
+
+\textbf{Kết quả.} Người dùng duy trì phiên đăng nhập liên tục tới 7 ngày mà không cần nhập lại mật khẩu, trong khi access token chỉ có giá trị sử dụng trong 15 phút. Cơ chế \texttt{useBootstrapAuth} ở frontend tự động làm mới access token khi tải lại trang, dựa trên refresh token cookie, mang lại trải nghiệm "luôn đăng nhập" mà không phải lưu access token ở nơi có thể bị truy cập bởi script độc hại.
+
+\section{Tối ưu truy vấn N+1 trong thống kê khóa học theo cấp độ}
+\label{section:5.4}
+
+\textbf{Vấn đề.} Trang danh sách cấp độ học (Level) cần hiển thị số lượng khóa học thuộc mỗi cấp độ (N5--N1). Cách triển khai trực tiếp -- với mỗi \texttt{Level}, gọi một truy vấn \texttt{COUNT(*)} riêng tới bảng \texttt{courses} -- dẫn tới hiện tượng \textit{N+1 query}: 1 truy vấn lấy danh sách \texttt{Level}, cộng thêm N truy vấn đếm (N = số cấp độ). Với 5 cấp độ, mỗi lần tải trang sẽ phát sinh 6 truy vấn, và số lượng truy vấn tăng tuyến tính nếu hệ thống mở rộng thêm cấp độ.
+
+\textbf{Giải pháp.} \texttt{LevelService} được tối ưu bằng cách thay thế N truy vấn đếm riêng lẻ bằng một truy vấn duy nhất sử dụng \texttt{GROUP BY}: phương thức \texttt{CourseRepository.countGroupByLevel()} trả về danh sách cặp (\texttt{levelId}, số lượng khóa học) trong một lần gọi CSDL. Kết quả được nạp vào một \texttt{Map<Long, Long>} trong bộ nhớ, sau đó \texttt{LevelService} duyệt qua danh sách \texttt{Level} và tra cứu số lượng tương ứng từ \texttt{Map} này.
+
+\textbf{Kết quả.} Số lượng truy vấn CSDL cho việc tải trang danh sách cấp độ giảm từ \(N+1\) xuống còn \(2\) (1 truy vấn lấy \texttt{Level}, 1 truy vấn \texttt{GROUP BY} đếm khóa học), không phụ thuộc vào số lượng cấp độ. Đây là một ví dụ cụ thể cho việc áp dụng nguyên tắc tối ưu truy vấn ORM đã đề cập trong yêu cầu phi chức năng về hiệu năng (Mục \ref{section:2.4}).
+
+\section{Trình phát video YouTube tùy biến với luồng tự động chuyển sang quiz}
+\label{section:5.5}
+
+\textbf{Vấn đề.} Theo đặc tả use case "Xem video bài học" (Mục \ref{subsection:2.3.3}), hệ thống yêu cầu: lần đầu xem một bài học, học viên phải xem hết video (tới sự kiện kết thúc) thì mới được chuyển sang trang quiz; nếu xem lại sau khi đã hoàn thành, học viên được xem tự do mà không bị ép chuyển trang. Một thẻ \texttt{<iframe>} YouTube nhúng thông thường không phát ra sự kiện trạng thái phát video, nên không thể phát hiện thời điểm video kết thúc -- giải pháp thay thế phổ biến là yêu cầu người dùng tự bấm nút "Đã xem xong", vốn không đảm bảo người dùng thực sự đã xem hết.
+
+\textbf{Giải pháp.} Component \texttt{YouTubeCustomPlayer} sử dụng YouTube IFrame Player API (Mục \ref{section:3.6}) thay cho iframe thô: video được nhúng với \texttt{controls:0} (ẩn control mặc định của YouTube) và phủ lên trên một lớp giao diện điều khiển tùy biến (overlay) cho play/pause, tua (seek), tắt tiếng, và toàn màn hình. API cung cấp sự kiện \texttt{onStateChange}, được lắng nghe để xử lý hai trường hợp:
+
+\begin{itemize}
+    \item Trạng thái \texttt{ENDED}: nếu đây là lần xem đầu tiên (xác định qua biến \texttt{wasCompletedRef} lưu trạng thái hoàn thành \textit{trước khi} video bắt đầu phát), hệ thống lưu tiến độ 100\% và tự động điều hướng (\texttt{navigate}) sang trang quiz (\texttt{/bai-hoc/:id/quiz}); nếu bài học đã hoàn thành từ trước, hệ thống chỉ lưu tiến độ mà không điều hướng, cho phép xem lại tự do.
+    \item Tiến độ xem: vị trí phát hiện tại được lưu định kỳ (debounce, chỉ lưu khi độ lệch \(\geq 5\) giây so với lần lưu trước) thông qua \texttt{useProgressMutation}, cho phép tiếp tục xem từ vị trí đã dừng ở lần truy cập sau.
+\end{itemize}
+
+Ngoài ra, khi quản trị viên nhập URL video YouTube ở trang quản lý bài học, hệ thống dùng IFrame API ở chế độ ẩn để tự động đọc thời lượng video (\texttt{getDuration()}) và điền vào trường \texttt{duration}, có giới hạn thời gian polling tối đa 10 giây để tránh treo \texttt{setInterval} nếu API không phản hồi.
+
+\textbf{Kết quả.} Toàn bộ luồng "xem video \(\to\) tự động chuyển quiz (lần đầu) / xem lại tự do (đã hoàn thành)" hoạt động không cần bất kỳ thao tác xác nhận thủ công nào từ người dùng, đáp ứng đúng yêu cầu UX đã đặt ra. \texttt{MP4Player} (giải pháp cũ dùng thẻ \texttt{<video>} trực tiếp) đã được loại bỏ hoàn toàn khỏi mã nguồn sau khi chuyển đổi.
+
+\section{Tích hợp thanh toán VNPay với cơ chế đăng ký khóa học tự động}
+\label{section:5.6}
+
+\textbf{Vấn đề.} Mục \ref{subsection:2.3.2} (đặc tả use case "Đăng ký khóa học") yêu cầu hệ thống hỗ trợ cả khóa học miễn phí và khóa học có phí. Với khóa học có phí, hệ thống cần đảm bảo người dùng chỉ được ghi nhận đăng ký (enrollment) sau khi giao dịch thanh toán đã được xác thực là hợp lệ -- nếu chỉ dựa vào việc frontend gọi API "đăng ký" sau khi chuyển hướng về từ cổng thanh toán, một người dùng có thể giả mạo việc gọi API này mà không thực sự thanh toán.
+
+\textbf{Giải pháp.} Như mô tả trong biểu đồ trình tự ở Mục \ref{subsection:4.2.2} (Hình \ref{fig:sequence-enroll-payment}), việc tạo bản ghi \texttt{UserCourseEnrollment} cho khóa học có phí \textbf{không} được thực hiện trực tiếp từ một API gọi bởi frontend, mà chỉ được thực hiện bên trong \texttt{PaymentService} -- duy nhất khi \texttt{VnpayService} xác thực thành công chữ ký HMAC-SHA512 trong request callback (\texttt{GET /api/v1/payments/vnpay-return}) gửi từ máy chủ VNPay. Quy trình cụ thể:
+
+\begin{enumerate}
+    \item Frontend gọi \texttt{POST /api/v1/payments/create}; backend tạo bản ghi \texttt{Payment} ở trạng thái chờ (\texttt{PENDING}) và trả về URL thanh toán đã được ký.
+    \item Người dùng hoàn tất (hoặc hủy) thanh toán trên giao diện VNPay sandbox.
+    \item VNPay gọi lại \texttt{vnpay-return} kèm các tham số giao dịch và chữ ký; \texttt{VnpayService} tính lại chữ ký từ các tham số nhận được bằng \textit{hash secret} và so sánh với chữ ký nhận được.
+    \item Nếu khớp và giao dịch thành công, \texttt{PaymentService} cập nhật \texttt{Payment} sang trạng thái thành công và gọi \texttt{EnrollmentService.enroll(...)}; nếu không khớp hoặc giao dịch thất bại, \texttt{Payment} được đánh dấu thất bại và không có enrollment nào được tạo.
+    \item Backend chuyển hướng (redirect) trình duyệt về \texttt{/thanh-toan/ket-qua} của frontend kèm trạng thái, để \texttt{PaymentResultPage} hiển thị thông báo phù hợp và nút "Vào học ngay" (nếu thành công).
+\end{enumerate}
+
+Đối với khóa học miễn phí (\texttt{price = 0}), luồng VNPay được bỏ qua hoàn toàn -- \texttt{EnrollmentService.enroll(...)} được gọi trực tiếp từ API đăng ký khi người dùng bấm "Đăng ký học".
+
+\textbf{Kết quả.} Việc xác thực enrollment hoàn toàn dựa trên kết quả xác thực phía server (chữ ký HMAC-SHA512 từ VNPay), loại bỏ khả năng giả mạo trạng thái thanh toán từ phía client. Các trường hợp kiểm thử TC-Pay-01 đến TC-Pay-04 (Mục \ref{section:4.4}) đã xác nhận cả ba nhánh: đăng ký miễn phí, thanh toán thành công, và thanh toán thất bại/giả mạo đều được xử lý đúng.
+
+\end{document}
