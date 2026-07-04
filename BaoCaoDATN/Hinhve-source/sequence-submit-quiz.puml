@@ -1,0 +1,30 @@
+@startuml sequence-submit-quiz
+actor "Học viên" as HV
+participant "QuizPage" as Page
+participant "useSubmitQuiz" as Hook
+participant "QuizController" as Ctrl
+participant "QuizService" as Svc
+participant "QuestionRepository" as QRepo
+participant "QuizAttemptRepository" as ARepo
+participant "LessonService" as Lesson
+participant "StreakService" as Streak
+
+HV -> Page : Nộp bài (10 câu trả lời)
+Page -> Hook : mutate(answers)
+Hook -> Ctrl : POST /api/v1/quizzes/{id}/attempts
+Ctrl -> Svc : submitAttempt(quizId, answers, user)
+Svc -> QRepo : findByQuizIdOrderByOrderIndexAsc(quizId)
+QRepo --> Svc : danh sách Question + đáp án đúng
+Svc -> Svc : kiểm tra ids.equals(questionIds)
+Svc -> Svc : chấm điểm theo questionType\n(VOCABULARY / CONTENT / SEQUENCE)
+Svc -> ARepo : save(QuizAttempt)
+ARepo --> Svc : QuizAttempt đã lưu
+alt passed == true
+  Svc -> Lesson : markCompleted(lesson, user)
+  Lesson -> Streak : updateOnLessonCompleted(user)
+end
+Svc --> Ctrl : QuizAttemptDto (score, passed)
+Ctrl --> Hook : 200 OK
+Hook --> Page : onSuccess(result)
+Page -> HV : Hiển thị popup kết quả
+@enduml

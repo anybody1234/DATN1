@@ -78,7 +78,7 @@ public class AdminQuizService {
             q.setContent("Câu hỏi " + tmpl.orderIndex());
             q.setOptions(List.of("Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"));
             q.setCorrectOption(0);
-            if ("CONTENT".equals(tmpl.questionType())) {
+            if ("VOCABULARY".equals(tmpl.questionType())) {
                 q.setCorrectAnswerText("Đáp án mẫu");
             } else if ("SEQUENCE".equals(tmpl.questionType())) {
                 q.setCorrectOrder(List.of(0, 1, 2, 3));
@@ -104,10 +104,10 @@ public class AdminQuizService {
                 .orElseThrow(() -> ApiException.notFound("Câu hỏi không tồn tại"));
         question.setContent(request.content());
         question.setOptions(request.options());
-        question.setCorrectOption(request.correctOption());
 
         switch (question.getQuestionType()) {
-            case "CONTENT" -> {
+            case "CONTENT" -> question.setCorrectOption(request.correctOption());
+            case "VOCABULARY" -> {
                 if (request.correctAnswerText() == null || request.correctAnswerText().isBlank()) {
                     throw ApiException.validation("Vui lòng nhập đáp án đúng.");
                 }

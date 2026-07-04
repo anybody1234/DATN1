@@ -58,9 +58,9 @@ function QuestionFormModal({
 
   const canSave =
     content.trim() !== "" &&
-    (question.questionType === "VOCABULARY"
+    (question.questionType === "CONTENT"
       ? options.every((o) => o.trim() !== "")
-      : question.questionType === "CONTENT"
+      : question.questionType === "VOCABULARY"
         ? correctAnswerText.trim() !== ""
         : options.every((o) => o.trim() !== "") && isPermutation);
 
@@ -72,7 +72,7 @@ function QuestionFormModal({
     }
 
     const data =
-      question.questionType === "CONTENT"
+      question.questionType === "VOCABULARY"
         ? {
             content,
             options: question.options,
@@ -104,10 +104,7 @@ function QuestionFormModal({
       className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div
-        className="relative w-full max-w-[580px] rounded-2xl border border-b2 p-6 max-h-[90vh] overflow-y-auto"
-        style={{ background: "var(--s1)" }}
-      >
+      <div className="modal-surface relative w-full max-w-[580px] rounded-2xl border border-b2 p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-t1 font-bold text-base">
             Chỉnh sửa câu {question.orderIndex}
@@ -126,21 +123,21 @@ function QuestionFormModal({
               rows={3}
               className="w-full bg-s2 border border-b1 rounded-lg px-3 py-2 text-t1 text-sm outline-none focus:border-acc transition-colors resize-none"
               placeholder={
-                question.questionType === "CONTENT"
+                question.questionType === "VOCABULARY"
                   ? "Dùng dấu gạch dưới (＿＿＿) để biểu thị chỗ trống"
                   : "Nhập nội dung câu hỏi"
               }
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
-            {question.questionType === "CONTENT" && (
+            {question.questionType === "VOCABULARY" && (
               <p className="text-t3 text-xs mt-1">
                 Dùng dấu gạch dưới (＿＿＿) để biểu thị chỗ trống cần điền.
               </p>
             )}
           </div>
 
-          {question.questionType === "VOCABULARY" && (
+          {question.questionType === "CONTENT" && (
             <div>
               <label className="text-t2 text-xs font-medium mb-2 block">
                 Đáp án — nhấn nút tròn để chọn đáp án đúng
@@ -181,7 +178,7 @@ function QuestionFormModal({
             </div>
           )}
 
-          {question.questionType === "CONTENT" && (
+          {question.questionType === "VOCABULARY" && (
             <div>
               <label className="text-t2 text-xs font-medium mb-1.5 block">
                 Đáp án đúng *
@@ -445,7 +442,7 @@ export function AdminQuizPage() {
                           </span>
                           <div className="flex-1 min-w-0">
                             <p className="text-t1 text-sm mb-3">{q.content}</p>
-                            {q.questionType === "VOCABULARY" && (
+                            {q.questionType === "CONTENT" && (
                               <div className="grid grid-cols-2 gap-2">
                                 {q.options.map((opt, i) => (
                                   <div
@@ -465,7 +462,7 @@ export function AdminQuizPage() {
                                 ))}
                               </div>
                             )}
-                            {q.questionType === "CONTENT" && (
+                            {q.questionType === "VOCABULARY" && (
                               <div className="px-3 py-1.5 rounded-lg border border-acc/40 bg-acc/10 text-acc text-xs inline-flex items-center gap-2">
                                 <span className="font-mono shrink-0">
                                   Đáp án:

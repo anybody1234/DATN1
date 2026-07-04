@@ -1,0 +1,35 @@
+@startuml sequence-enroll-payment
+actor "Học viên" as HV
+participant "CourseDetailPage" as Page
+participant "PaymentController" as Ctrl
+participant "PaymentService" as Svc
+participant "VnpayService" as Vnpay
+participant "EnrollmentService" as Enroll
+participant "VNPay (sandbox)" as VNPay
+participant "PaymentResultPage" as Result
+
+HV -> Page : Bấm "Mua khoá học"
+Page -> Ctrl : POST /api/v1/payments/create
+Ctrl -> Svc : createPayment(courseId, userId, ip)
+Svc -> Svc : có Payment PENDING\ncùng khóa học? (tái dùng txnRef)
+Svc -> Vnpay : buildPaymentUrl(txnRef, amount, info, ip)
+Vnpay --> Svc : URL có chữ ký HMAC-SHA512
+Svc --> Ctrl : PaymentDto(paymentUrl)
+Ctrl --> Page : 200 OK
+Page -> VNPay : window.location.href = paymentUrl
+HV -> VNPay : Thanh toán trên sandbox
+VNPay -> Ctrl : GET /api/v1/payments/vnpay-return
+Ctrl -> Svc : handleVnpayReturn(params)
+Svc -> Svc : Payment đã SUCCESS từ trước?\n(nếu có, trả kết quả ngay, không xử lý lại)
+Svc -> Vnpay : verifyReturn(params)
+Vnpay --> Svc : chữ ký hợp lệ?
+alt hợp lệ và giao dịch thành công
+  Svc -> Svc : cập nhật Payment.status = SUCCESS
+  Svc -> Enroll : enroll(courseId, user)
+else không hợp lệ / giao dịch thất bại
+  Svc -> Svc : cập nhật Payment.status = FAILED
+end
+Svc --> Ctrl : ReturnResult(courseId, success)
+Ctrl -> Result : redirect /thanh-toan/ket-qua
+Result -> HV : Hiển thị kết quả thanh toán
+@enduml

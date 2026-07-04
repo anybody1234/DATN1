@@ -11,31 +11,31 @@ const LEVELS = [
     name: "N5",
     label: "Sơ cấp",
     desc: "Hiragana, Katakana, từ vựng cơ bản",
-    courses: 12,
+    courses: 2,
   },
   {
     name: "N4",
     label: "Sơ trung cấp",
     desc: "Ngữ pháp mở rộng, hội thoại đơn giản",
-    courses: 10,
+    courses: 2,
   },
   {
     name: "N3",
     label: "Trung cấp",
     desc: "Đọc hiểu, biểu đạt phức tạp",
-    courses: 14,
+    courses: 2,
   },
   {
     name: "N2",
     label: "Trung cao cấp",
     desc: "Văn phong trang trọng, chuyên ngành",
-    courses: 16,
+    courses: 2,
   },
   {
     name: "N1",
     label: "Cao cấp",
     desc: "Thành thạo toàn diện, bản địa hoá",
-    courses: 18,
+    courses: 2,
   },
 ];
 
@@ -221,13 +221,13 @@ export function LandingPage() {
               className="text-t2 text-base leading-relaxed mb-6"
               style={{ maxWidth: 420 }}
             >
-              Video phát trực tuyến chất lượng cao qua Cloudinary HLS. Tự động
-              lưu vị trí xem mỗi 10 giây — tiếp tục bất cứ lúc nào, trên bất kỳ
-              thiết bị nào.
+              Video bài giảng phát trực tiếp qua YouTube với trình điều khiển
+              tuỳ biến riêng. Tự động lưu vị trí xem mỗi 10 giây — tiếp tục bất
+              cứ lúc nào, trên bất kỳ thiết bị nào.
             </p>
             <ul className="flex flex-col gap-2.5">
               {[
-                "Phát HLS thích nghi chất lượng tự động",
+                "Trình phát YouTube tuỳ biến, không quảng cáo gây phân tâm",
                 "Tự động lưu tiến độ 10 giây/lần",
                 "Resume từ vị trí đã xem",
               ].map((item) => (
@@ -274,14 +274,14 @@ export function LandingPage() {
               className="text-t2 text-base leading-relaxed mb-6"
               style={{ maxWidth: 420 }}
             >
-              Sau mỗi bài giảng, quiz 5–10 câu trắc nghiệm xuất hiện ngay lập
-              tức. Xem kết quả, đáp án đúng/sai, và luyện lại không giới hạn số
-              lần.
+              Sau mỗi bài giảng, quiz 10 câu xuất hiện ngay lập tức — từ vựng,
+              nội dung và sắp xếp trình tự. Xem kết quả, đáp án đúng/sai, và
+              luyện lại không giới hạn số lần.
             </p>
             <ul className="flex flex-col gap-2.5">
               {[
-                "4 lựa chọn, 1 đáp án đúng",
-                "Ngưỡng đạt 70% có thể tuỳ chỉnh",
+                "3 dạng câu hỏi: trắc nghiệm, điền từ, sắp xếp trình tự",
+                "Ngưỡng đạt 70–80% theo từng cấp độ",
                 "Lưu lịch sử tất cả lần làm bài",
               ].map((item) => (
                 <li

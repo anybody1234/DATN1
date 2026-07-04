@@ -225,56 +225,6 @@
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* ─── YouTube custom player: progress bar ───────────── */
-.yt-progress {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-  display: block;
-  background: linear-gradient(
-    to right,
-    var(--acc) var(--yt-progress-pct, 0%),
-    rgba(255, 255, 255, 0.18) var(--yt-progress-pct, 0%)
-  );
-}
-
-.yt-progress:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.yt-progress::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--acc);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.yt-progress:not(:disabled):hover::-webkit-slider-thumb {
-  opacity: 1;
-}
-
-.yt-progress::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--acc);
-  border: none;
-  cursor: pointer;
-}
-
-/* Gradient overlay phía dưới player — che controls */
-.yt-controls-gradient {
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, transparent 100%);
-}
-
 /* Đảm bảo iframe YouTube fill đúng container */
 .yt-wrapper iframe {
   width: 100% !important;
@@ -282,15 +232,6 @@
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
-}
-
-/* Fullscreen — bỏ ràng buộc aspect-video để player fill toàn màn hình,
-   tránh lệch giữa khung video và lớp controls khi thu nhỏ lại */
-.yt-player-wrapper:fullscreen {
-  width: 100vw;
-  height: 100vh;
-  aspect-ratio: auto;
-  border-radius: 0;
 }
 
 /* ─── Navbar ─────────────────────────────────────────── */
@@ -320,9 +261,20 @@
   backdrop-filter: blur(4px);
 }
 
+/* ─── Modal surface (dùng chung cho admin + quiz result + attempt review) */
+.modal-surface {
+  background: var(--s1);
+}
+
 /* ─── Heading letter-spacing tight (dùng thay inline style letterSpacing) */
 .heading-tight {
   letter-spacing: -0.02em;
+}
+
+/* ─── Mock landing-page card chrome (dùng chung cho MockLessonCard/MockQuizCard/MockStreakCard) */
+.mock-card {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--s1);
 }
 
 /* ─── Ẩn mũi tên tăng/giảm của input[type=number] ───── */

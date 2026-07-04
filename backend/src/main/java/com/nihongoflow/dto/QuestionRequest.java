@@ -11,7 +11,7 @@ public record QuestionRequest(
         @NotBlank String content,
         @NotNull @Size(min = 4, max = 4, message = "Phải có đúng 4 đáp án") List<String> options,
         @Min(0) @Max(3) int correctOption,
-        // Bắt buộc nếu questionType = CONTENT — validate trong AdminQuizService
+        // Bắt buộc nếu questionType = VOCABULARY — validate trong AdminQuizService
         String correctAnswerText,
         // Bắt buộc nếu questionType = SEQUENCE (permutation của 0-3) — validate trong AdminQuizService
         List<Integer> correctOrder

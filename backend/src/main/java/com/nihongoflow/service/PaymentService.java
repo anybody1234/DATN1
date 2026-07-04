@@ -60,17 +60,23 @@ public class PaymentService {
             return new PaymentDto(courseId, course.getPrice(), STATUS_SUCCESS, null);
         }
 
-        String txnRef = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+        // Đã có giao dịch PENDING cho khoá học này → tái dùng txnRef, tránh tích lũy Payment mồ côi
+        String txnRef = paymentRepository
+                .findByUserIdAndCourseIdAndStatus(userId, courseId, STATUS_PENDING)
+                .map(Payment::getVnpTxnRef)
+                .orElseGet(() -> {
+                    String newTxnRef = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+                    Payment payment = new Payment();
+                    payment.setUser(user);
+                    payment.setCourse(course);
+                    payment.setAmount(course.getPrice());
+                    payment.setVnpTxnRef(newTxnRef);
+                    payment.setStatus(STATUS_PENDING);
+                    paymentRepository.save(payment);
+                    return newTxnRef;
+                });
+
         String orderInfo = "Thanh toan khoa hoc " + courseId;
-
-        Payment payment = new Payment();
-        payment.setUser(user);
-        payment.setCourse(course);
-        payment.setAmount(course.getPrice());
-        payment.setVnpTxnRef(txnRef);
-        payment.setStatus(STATUS_PENDING);
-        paymentRepository.save(payment);
-
         String url = vnpayService.buildPaymentUrl(txnRef, course.getPrice(), orderInfo, ipAddr);
         return new PaymentDto(courseId, course.getPrice(), STATUS_PENDING, url);
     }
@@ -82,6 +88,11 @@ public class PaymentService {
         String txnRef = params.get("vnp_TxnRef");
         Payment payment = paymentRepository.findByVnpTxnRef(txnRef)
                 .orElseThrow(() -> ApiException.notFound("Giao dịch không tồn tại."));
+
+        // Tránh replay: giao dịch đã SUCCESS thì không xử lý lại (không ghi đè paidAt/vnpTxnId, không enroll lại)
+        if (STATUS_SUCCESS.equals(payment.getStatus())) {
+            return new ReturnResult(payment.getCourse().getId(), true);
+        }
 
         boolean validHash = vnpayService.verifyReturn(params);
         boolean vnpaySuccess = "00".equals(params.get("vnp_ResponseCode"));

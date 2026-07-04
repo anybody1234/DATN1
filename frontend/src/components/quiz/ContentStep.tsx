@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import type { AnswerValue, Question } from "@/types";
 import { ExampleCard } from "./ExampleCard";
-import { FillInBlankQuestion } from "./FillInBlankQuestion";
+import { MultipleChoiceQuestion } from "./MultipleChoiceQuestion";
 
 export function ContentStep({
   questions,
@@ -20,11 +20,7 @@ export function ContentStep({
   onBack: () => void;
   onNext: () => void;
 }) {
-  const allFilled = questions.every(
-    (q) =>
-      typeof answers[q.id] === "string" &&
-      (answers[q.id] as string).trim() !== "",
-  );
+  const allAnswered = questions.every((q) => answers[q.id] !== undefined);
 
   return (
     <div className="border border-b1 rounded-xl bg-s1 p-6">
@@ -37,13 +33,12 @@ export function ContentStep({
 
       <div className="flex flex-col gap-5 mb-2">
         {questions.map((q, i) => (
-          <FillInBlankQuestion
+          <MultipleChoiceQuestion
             key={q.id}
             content={`${i + 1}. ${q.content}`}
-            value={(answers[q.id] as string) ?? ""}
-            onChange={(value) =>
-              setAnswers((prev) => ({ ...prev, [q.id]: value }))
-            }
+            options={q.options}
+            selected={answers[q.id] as number | undefined}
+            onSelect={(oi) => setAnswers((prev) => ({ ...prev, [q.id]: oi }))}
           />
         ))}
       </div>
@@ -52,11 +47,11 @@ export function ContentStep({
         <Button variant="outline" onClick={onBack}>
           <ChevronLeft size={14} /> Quay lại
         </Button>
-        <Button disabled={!allFilled} onClick={onNext}>
+        <Button disabled={!allAnswered} onClick={onNext}>
           Tiếp theo <ChevronRight size={14} />
         </Button>
       </div>
-      {!allFilled && (
+      {!allAnswered && (
         <p className="text-t3 text-xs text-center mt-2">
           Vui lòng trả lời tất cả {questions.length} câu hỏi trước khi tiếp tục
         </p>

@@ -17,10 +17,7 @@ export function ResultModal({
 }) {
   return (
     <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="relative w-full max-w-[400px] rounded-2xl border border-b2 p-8 text-center"
-        style={{ background: "var(--s1)" }}
-      >
+      <div className="modal-surface relative w-full max-w-[400px] rounded-2xl border border-b2 p-8 text-center">
         <button
           onClick={onDismiss}
           className="absolute top-4 right-4 text-t3 hover:text-t2 transition-colors"

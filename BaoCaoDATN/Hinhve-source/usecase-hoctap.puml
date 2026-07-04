@@ -1,0 +1,25 @@
+@startuml usecase-hoctap
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Học viên" as HV
+
+rectangle "Nhóm chức năng học tập" {
+  usecase "Đăng ký / Đăng nhập" as UC1
+  usecase "Xem danh sách khóa học" as UC2
+  usecase "Đăng ký khóa học" as UC3
+  usecase "Xem video bài học" as UC4
+  usecase "Làm bài quiz" as UC5
+  usecase "Xem lại kết quả quiz" as UC6
+  usecase "Cập nhật tiến độ\nhọc tập" as UC7
+}
+
+HV --> UC1
+HV --> UC2
+HV --> UC3
+HV --> UC4
+HV --> UC5
+HV --> UC6
+UC4 ..> UC7 : <<include>>
+UC5 ..> UC7 : <<include>>
+@enduml

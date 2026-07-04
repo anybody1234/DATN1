@@ -10,15 +10,11 @@ import org.springframework.data.jpa.repository.Query;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findAllByOrderByOrderIndexAsc();
 
-    List<Course> findByLevelIdOrderByOrderIndexAsc(Long levelId);
-
     List<Course> findByHiddenFalseOrderByOrderIndexAsc();
 
     List<Course> findByLevelIdAndHiddenFalseOrderByOrderIndexAsc(Long levelId);
 
     List<Course> findByIdInOrderByOrderIndexAsc(Collection<Long> ids);
-
-    long countByLevelId(Long levelId);
 
     @Query("select c.level.id, count(c) from Course c group by c.level.id")
     List<Object[]> countGroupByLevel();

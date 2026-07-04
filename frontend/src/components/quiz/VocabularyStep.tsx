@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import type { AnswerValue, Question } from "@/types";
 import { ExampleCard } from "./ExampleCard";
-import { VocabularyQuestion } from "./VocabularyQuestion";
+import { FillInBlankQuestion } from "./FillInBlankQuestion";
 
 export function VocabularyStep({
   questions,
@@ -18,7 +18,11 @@ export function VocabularyStep({
   ) => void;
   onNext: () => void;
 }) {
-  const allAnswered = questions.every((q) => answers[q.id] !== undefined);
+  const allAnswered = questions.every(
+    (q) =>
+      typeof answers[q.id] === "string" &&
+      (answers[q.id] as string).trim() !== "",
+  );
 
   return (
     <div className="border border-b1 rounded-xl bg-s1 p-6">
@@ -31,12 +35,13 @@ export function VocabularyStep({
 
       <div className="flex flex-col gap-5 mb-2">
         {questions.map((q, i) => (
-          <VocabularyQuestion
+          <FillInBlankQuestion
             key={q.id}
             content={`${i + 1}. ${q.content}`}
-            options={q.options}
-            selected={answers[q.id] as number | undefined}
-            onSelect={(oi) => setAnswers((prev) => ({ ...prev, [q.id]: oi }))}
+            value={(answers[q.id] as string) ?? ""}
+            onChange={(value) =>
+              setAnswers((prev) => ({ ...prev, [q.id]: value }))
+            }
           />
         ))}
       </div>

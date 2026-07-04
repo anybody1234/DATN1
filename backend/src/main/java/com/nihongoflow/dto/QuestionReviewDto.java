@@ -8,8 +8,8 @@ public record QuestionReviewDto(
         List<String> options,
         String questionType,
         int orderIndex,
-        Integer correctOption,      // VOCABULARY
-        String correctAnswerText,   // CONTENT
+        Integer correctOption,      // CONTENT
+        String correctAnswerText,   // VOCABULARY
         List<Integer> correctOrder, // SEQUENCE
         Object selectedAnswer       // Integer | String | List<Integer> | null nếu không trả lời
 ) {}

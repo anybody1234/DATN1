@@ -1,30 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Question, Quiz, QuizAttempt } from "@/types";
+import type { Question, QuestionResult, Quiz, QuizAttempt } from "@/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock dependencies
 // ─────────────────────────────────────────────────────────────────────────────
 
-const mockInvalidate = vi.fn();
 const mockMutate = vi.fn();
-let mockMutationSuccess: ((data: QuizAttempt) => void) | null = null;
-let mockMutationError: (() => void) | null = null;
-let mockIsPending = false;
-
-vi.mock("@tanstack/react-query", () => ({
-  useQueryClient: () => ({ invalidateQueries: mockInvalidate }),
-  useMutation: (opts: {
-    mutationFn: () => Promise<QuizAttempt>;
-    onSuccess: (d: QuizAttempt) => void;
-    onError: () => void;
-  }) => {
-    mockMutationSuccess = opts.onSuccess;
-    mockMutationError = opts.onError;
-    return { mutate: mockMutate, isPending: mockIsPending };
-  },
-}));
 
 vi.mock("@/lib/axios", () => ({ default: { post: vi.fn() } }));
 vi.mock("@/components/ui/Button", () => ({
@@ -85,6 +68,21 @@ function makeStandardQuiz(shuffle = false): Quiz {
   return { id: 99, lessonId: 1, passScore: 70, questions: qs };
 }
 
+function makeResultQuestion(
+  questionId: number,
+  correctOption: number,
+  selectedAnswer: number,
+): QuestionResult {
+  return {
+    questionId,
+    questionType: "CONTENT",
+    correctOption,
+    correctAnswerText: null,
+    correctOrder: null,
+    selectedAnswer,
+  };
+}
+
 function makeResult(passed: boolean, score: number): QuizAttempt {
   return {
     id: 1,
@@ -94,25 +92,18 @@ function makeResult(passed: boolean, score: number): QuizAttempt {
     attemptedAt: "2026-05-18T10:00:00Z",
     passed,
     results: [
-      { questionId: 1, correctOption: 0, selectedOption: passed ? 0 : 1 },
-      { questionId: 2, correctOption: 1, selectedOption: 1 },
-      { questionId: 3, correctOption: 2, selectedOption: 2 },
-      { questionId: 4, correctOption: 0, selectedOption: 0 },
-      { questionId: 5, correctOption: 1, selectedOption: 1 },
-      { questionId: 6, correctOption: 0, selectedOption: 0 },
-      { questionId: 7, correctOption: 2, selectedOption: 2 },
-      { questionId: 8, correctOption: 1, selectedOption: 1 },
-      { questionId: 9, correctOption: 0, selectedOption: 0 },
-      { questionId: 10, correctOption: 3, selectedOption: passed ? 3 : 0 },
+      makeResultQuestion(1, 0, passed ? 0 : 1),
+      makeResultQuestion(2, 1, 1),
+      makeResultQuestion(3, 2, 2),
+      makeResultQuestion(4, 0, 0),
+      makeResultQuestion(5, 1, 1),
+      makeResultQuestion(6, 0, 0),
+      makeResultQuestion(7, 2, 2),
+      makeResultQuestion(8, 1, 1),
+      makeResultQuestion(9, 0, 0),
+      makeResultQuestion(10, 3, passed ? 3 : 0),
     ],
   };
-}
-
-// Import lazily to ensure mocks are set up first
-async function getQuizSection() {
-  const mod = await import("../pages/LessonPage");
-  // QuizSection is not exported — expose via the page render test approach
-  return mod;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -388,7 +379,7 @@ describe("QuizSection — query invalidation sau submit", () => {
       invalidate({ queryKey: ["lesson", lessonId] });
       invalidate({ queryKey: ["recent-attempts"] });
       invalidate({ queryKey: ["lessons", courseId] });
-      invalidate({ queryKey: ["course", Number(courseId)] });
+      invalidate({ queryKey: ["course", courseId] });
       invalidate({ queryKey: ["my-courses"] });
       invalidate({ queryKey: ["streak"] });
     }
@@ -405,13 +396,13 @@ describe("QuizSection — query invalidation sau submit", () => {
     expect(keys).toContain("streak");
   });
 
-  it("invalidate course với courseId là số, không phải string", () => {
+  it("invalidate course với courseId luôn là string, không ép kiểu Number", () => {
     const invalidate = vi.fn();
     const courseId = "3";
 
-    invalidate({ queryKey: ["course", Number(courseId)] });
+    invalidate({ queryKey: ["course", courseId] });
     expect(invalidate).toHaveBeenCalledWith({
-      queryKey: ["course", 3], // Number, không phải "3"
+      queryKey: ["course", "3"], // string, đúng theo query key convention của useQuiz.ts
     });
   });
 });
@@ -492,20 +483,11 @@ describe("QuizSection — reset state (Làm lại)", () => {
 // QuizSection dùng React state nên cần render. Tạo wrapper tối thiểu.
 const React = await import("react");
 
-function QuizSectionWrapper({
-  quiz,
-  lessonId = 1,
-  courseId = "1",
-}: {
-  quiz: Quiz;
-  lessonId?: number;
-  courseId?: string;
-}) {
+function QuizSectionWrapper({ quiz }: { quiz: Quiz }) {
   // Re-implement QuizSection logic inline để test độc lập khỏi dependencies phức tạp
   const [answers, setAnswers] = React.useState<Record<number, number>>({});
   const [submitted, setSubmitted] = React.useState(false);
   const [result, setResult] = React.useState<QuizAttempt | null>(null);
-  const [submitError, setSubmitError] = React.useState("");
 
   const sorted = [...quiz.questions].sort(
     (a, b) => a.orderIndex - b.orderIndex,
@@ -601,7 +583,6 @@ function QuizSectionWrapper({
       >
         Nộp bài
       </button>
-      {submitError && <p data-testid="submit-error">{submitError}</p>}
       {!allAnswered && (
         <p data-testid="hint">
           Vui lòng trả lời tất cả {sorted.length} câu hỏi trước khi nộp

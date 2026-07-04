@@ -14,14 +14,19 @@ export function useLessonDetail(lessonId: string | undefined) {
   });
 }
 
+interface ProgressUpdate {
+  watchedSeconds: number;
+  completed?: boolean;
+}
+
 export function useProgressMutation(
   lessonId: string | undefined,
   courseId: string | undefined,
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (watchedSeconds: number) =>
-      api.post(`/lessons/${lessonId}/progress`, { watchedSeconds }),
+    mutationFn: ({ watchedSeconds, completed }: ProgressUpdate) =>
+      api.post(`/lessons/${lessonId}/progress`, { watchedSeconds, completed }),
     onSuccess: () => {
       if (lessonId) {
         queryClient.invalidateQueries({

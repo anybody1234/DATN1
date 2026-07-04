@@ -16,7 +16,7 @@ Bachelor's thesis — HUST SOICT, Semester 2025.2.
 Kiểm tra **tất cả** các luồng chính:
 
 1. **Backend** → `mvn compile`, đảm bảo không có lỗi compile
-2. **Frontend** → `npx tsc --noEmit`, đảm bảo không có TypeScript error
+2. **Frontend** → `npx tsc -b`, đảm bảo không có TypeScript error (**không dùng** `npx tsc --noEmit` — `tsconfig.json` gốc dùng project references với `files: []`, nên `tsc --noEmit` chạy trực tiếp sẽ check 0 file và luôn "pass" giả; phải dùng `-b` để resolve references và thực sự type-check `src/`)
 
 ### Bước 2 — QA scan + tự fix (agent `qa-tester`)
 
@@ -37,7 +37,7 @@ Yêu cầu:
 ```
 
 Sau khi có báo cáo → **tự fix tất cả issues** theo thứ tự severity, không hỏi lại người dùng.
-Sau khi fix xong → chạy lại `mvn compile` và `npx tsc --noEmit` để xác nhận không có lỗi mới.
+Sau khi fix xong → chạy lại `mvn compile` và `npx tsc -b` để xác nhận không có lỗi mới.
 
 ### Bước 3 — Code Review + tự fix (agent `code-reviewer`)
 
@@ -59,7 +59,7 @@ Chạy `code-reviewer` agent để **review toàn bộ codebase**:
 ```
 
 Sau khi có báo cáo → **tự fix tất cả violations**, không bỏ qua dù là LOW severity.
-Sau khi fix xong → chạy lại `mvn compile` và `npx tsc --noEmit` để xác nhận sạch.
+Sau khi fix xong → chạy lại `mvn compile` và `npx tsc -b` để xác nhận sạch.
 
 ### Bước 4 — Báo cáo tóm tắt
 
@@ -217,9 +217,10 @@ Detailed rules live in `.claude/rules/`:
   - `/api/v1/admin/**` → chỉ ADMIN
   - Enroll, progress, quiz attempts, `/users/me/**` → chỉ STUDENT
   - Lesson/quiz access → STUDENT phải enroll; ADMIN bypass
-- Flyway V1 (schema) + V2 (question fields) + V3 (enrollment) + V4 (course hidden) + V5 (cascade delete lessons) + V6 (indexes) + V7 (price + payments table) + V9 (question answer types: `correct_answer_text`, `correct_order` cho CONTENT/SEQUENCE)
-- **3 loại câu hỏi với cách chấm khác nhau** — VOCABULARY (trắc nghiệm), CONTENT (điền từ, trim + không phân biệt hoa/thường), SEQUENCE (click theo thứ tự, exact-match toàn bộ chuỗi); `QuizAttempt.answers`/`QuizAttemptRequest.answers` đổi sang `Map<Long, Object>`; `QuizService.validateAnswers`/`isCorrect` switch theo `questionType`
-- **CẢNH BÁO**: 144 câu CONTENT/SEQUENCE trong seed data chỉ có `correct_answer_text`/`correct_order` là **placeholder hợp lệ về kiểu** (V9) — admin cần rà soát + sửa nội dung thật qua AdminQuizPage
+- Flyway V1 (schema) + V2 (question fields) + V3 (enrollment) + V4 (course hidden) + V5 (cascade delete lessons) + V6 (indexes) + V7 (price + payments table) + V9 (question answer types: `correct_answer_text`, `correct_order` cho CONTENT/SEQUENCE) + V10 (đổi vai trò VOCABULARY ↔ CONTENT, backfill `correct_answer_text` cho VOCABULARY)
+- **3 loại câu hỏi với cách chấm khác nhau** — VOCABULARY (điền từ, trim + không phân biệt hoa/thường), CONTENT (trắc nghiệm), SEQUENCE (click theo thứ tự, exact-match toàn bộ chuỗi); `QuizAttempt.answers`/`QuizAttemptRequest.answers` đổi sang `Map<Long, Object>`; `QuizService.validateAnswers`/`isCorrect` switch theo `questionType`
+- **Đổi vai trò VOCABULARY ↔ CONTENT (V10)** — VOCABULARY (từ vựng) trả lời bằng tự luận vì học viên thấy gõ từ vựng dễ hơn; CONTENT (nội dung video) chuyển sang trắc nghiệm vì câu hỏi hiểu nội dung có nhiều cách diễn đạt, gõ tự do dễ sai oan. Nhờ swap này, dữ liệu seed gốc (`options`/`correct_option` từ V1) trở thành dữ liệu hợp lệ cho cả 2 loại — không còn placeholder cho VOCABULARY/CONTENT
+- **CẢNH BÁO**: 72 câu SEQUENCE trong seed data vẫn chỉ có `correct_order` là **placeholder hợp lệ về kiểu** (`[0,1,2,3]` đồng nhất) — admin cần rà soát + sắp đúng thứ tự thật qua AdminQuizPage
 - **Security hardening** — JWT secret không còn fallback mặc định (throw `IllegalStateException` khi thiếu config)
 - **Quiz validation** — `validateAnswers` dùng symmetric `ids.equals(questionIds)` thay vì `containsAll` một chiều
 - **LevelService N+1 fix** — batch query `countGroupByLevel()`, giảm từ N+1 xuống 1 query
@@ -237,8 +238,8 @@ Detailed rules live in `.claude/rules/`:
 - **Video flow**: xem hết video (`ended` event) → tự chuyển sang QuizPage (lần đầu); xem lại tự do sau khi đã hoàn thành
 - **QuizPage** tách riêng route `/bai-hoc/:id/quiz`
 - **Quiz wizard 3 trang** (`src/components/quiz/`) — `VocabularyStep` → `ContentStep` → `SequenceStep`, state `answers`/`step` lift lên `QuizPage`, đáp án giữ nguyên khi back/forward:
-  - VOCABULARY: trắc nghiệm 4 đáp án (`VocabularyQuestion`)
-  - CONTENT: điền từ (`FillInBlankQuestion`), chấm trim + không phân biệt hoa/thường
+  - VOCABULARY: điền từ (`FillInBlankQuestion`), chấm trim + không phân biệt hoa/thường
+  - CONTENT: trắc nghiệm 4 đáp án (`VocabularyQuestion`)
   - SEQUENCE: click chọn theo thứ tự (`SequenceOrderQuestion`), chấm exact-match toàn bộ thứ tự click
   - Mỗi trang có `ExampleCard` hiển thị 1 câu ví dụ tĩnh (hardcode trong `lib/quiz-constants.ts`, không tính điểm) minh họa cách làm
   - Trang Sequence có nút "Nộp bài" → gửi cả 10 câu → `ResultModal` (popup score/pass, "Quay lại trang tổng quan" → `/dashboard`)
@@ -299,18 +300,19 @@ Detailed rules live in `.claude/rules/`:
 
 ### Quyết định quan trọng
 
-| Quyết định                                        | Lý do                                                                                                                                                                                                                                                                                                  |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Hướng A: ADMIN và STUDENT hoàn toàn tách biệt** | Admin không cần trải nghiệm học thử; tách bạch giúp logic rõ ràng hơn, dễ maintain. Ngược lại Hướng B (admin = super student) phức tạp hơn và không cần thiết với scope thesis.                                                                                                                        |
-| **Video phải xem hết (`ended`) mới mở quiz**      | Yêu cầu từ người dùng — đảm bảo học viên không bỏ qua nội dung. Trước đó dùng 80% nhưng đã đổi.                                                                                                                                                                                                        |
-| **Xem lại video tự do sau khi hoàn thành**        | UX: học viên có thể ôn lại mà không bị redirect vào quiz lần 2. `wasCompletedRef` track trạng thái ban đầu để phân biệt lần đầu và xem lại.                                                                                                                                                            |
-| **Quiz là trang riêng (`/bai-hoc/:id/quiz`)**     | Tách video và quiz ra 2 URL riêng để có thể bookmark, deep-link, và quản lý navigation rõ ràng hơn.                                                                                                                                                                                                    |
-| **Enrollment bắt buộc trước khi học**             | Chuẩn business logic: student phải chủ động đăng ký → dashboard chỉ hiện khóa đang học → số liệu có ý nghĩa hơn.                                                                                                                                                                                       |
-| **YouTube embed thay vì Cloudinary/Cloudflare**   | Đồ án tốt nghiệp được đánh giá theo tính năng hệ thống, không theo hạ tầng lưu trữ. YouTube miễn phí, không cần credentials, hoạt động ngay, có sẵn video tiếng Nhật chất lượng cao. Tiết kiệm 1–2 session để làm Admin Lesson CRUD và Quiz Management — quan trọng hơn với hội đồng.                  |
-| **Tạo admin bằng UPDATE trực tiếp vào DB**        | `register` API luôn gán role=STUDENT. Cách tạo admin: đăng ký thường → chạy `& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u nihongo -p123456 nihongoflow -e "UPDATE users SET role='ADMIN' WHERE email='...'"` (mysql.exe nằm ở Program Files, không có trong PATH mặc định).            |
-| **ON DELETE CASCADE qua Flyway V5**               | Xóa lesson phải dọn sạch quiz, questions, quiz_attempts, user_lesson_progress. Giải pháp sạch nhất là thêm CASCADE ở DB level thay vì xử lý thủ công trong service.                                                                                                                                    |
-| **Seed chạy bằng `cmd /c`**                       | PowerShell pipe (`\|`) gây lỗi encoding UTF-8 với ký tự tiếng Việt/Nhật → dùng `cmd /c "mysql ... < file.sql"` để đảm bảo đúng charset.                                                                                                                                                                |
-| **VideoPlayer chỉ hỗ trợ YouTube**                | MP4Player bị xóa hoàn toàn. Tất cả video trong hệ thống phải là YouTube URL. Admin nhập YouTube URL → admin form detect tự động → IFrame API đọc duration. Không cần hỗ trợ MP4 trực tiếp cho thesis.                                                                                                  |
-| **YouTube IFrame API thay vì iframe thô**         | iframe thô cần nút "Đã xem xong" thủ công vì không có event. IFrame API cho phép bắt `onStateChange` ENDED → tự navigate quiz, tự save progress, hoàn toàn custom controls. Trải nghiệm tốt hơn, logic đúng hơn.                                                                                       |
-| **VNPay sandbox cho thanh toán**                  | TMN Code `76FLQ5YR`, Hash Secret `899P0KKH8KO1XUFD92BMGXRKJMRNKSTG` (sandbox only). Return URL backend: `http://localhost:8080/api/v1/payments/vnpay-return` — backend xử lý verify hash rồi redirect về frontend `/thanh-toan/ket-qua`. Khóa miễn phí (price=0) vẫn enroll trực tiếp không qua VNPay. |
-| **Admin Quiz chỉ sửa, không thêm/xóa câu**        | Cấu trúc 10 câu cố định (4 VOCABULARY + 3 CONTENT + 3 SEQUENCE) được seed sẵn. Admin chỉ cần sửa nội dung câu hỏi và đáp án — không cần thêm/xóa vì structure đã đúng. Đơn giản hơn, đủ dùng cho thesis.                                                                                               |
+| Quyết định                                        | Lý do                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hướng A: ADMIN và STUDENT hoàn toàn tách biệt** | Admin không cần trải nghiệm học thử; tách bạch giúp logic rõ ràng hơn, dễ maintain. Ngược lại Hướng B (admin = super student) phức tạp hơn và không cần thiết với scope thesis.                                                                                                                                                                           |
+| **Video phải xem hết (`ended`) mới mở quiz**      | Yêu cầu từ người dùng — đảm bảo học viên không bỏ qua nội dung. Trước đó dùng 80% nhưng đã đổi.                                                                                                                                                                                                                                                           |
+| **Xem lại video tự do sau khi hoàn thành**        | UX: học viên có thể ôn lại mà không bị redirect vào quiz lần 2. `wasCompletedRef` track trạng thái ban đầu để phân biệt lần đầu và xem lại.                                                                                                                                                                                                               |
+| **Quiz là trang riêng (`/bai-hoc/:id/quiz`)**     | Tách video và quiz ra 2 URL riêng để có thể bookmark, deep-link, và quản lý navigation rõ ràng hơn.                                                                                                                                                                                                                                                       |
+| **Enrollment bắt buộc trước khi học**             | Chuẩn business logic: student phải chủ động đăng ký → dashboard chỉ hiện khóa đang học → số liệu có ý nghĩa hơn.                                                                                                                                                                                                                                          |
+| **YouTube embed thay vì Cloudinary/Cloudflare**   | Đồ án tốt nghiệp được đánh giá theo tính năng hệ thống, không theo hạ tầng lưu trữ. YouTube miễn phí, không cần credentials, hoạt động ngay, có sẵn video tiếng Nhật chất lượng cao. Tiết kiệm 1–2 session để làm Admin Lesson CRUD và Quiz Management — quan trọng hơn với hội đồng.                                                                     |
+| **Tạo admin bằng UPDATE trực tiếp vào DB**        | `register` API luôn gán role=STUDENT. Cách tạo admin: đăng ký thường → chạy `& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u nihongo -p123456 nihongoflow -e "UPDATE users SET role='ADMIN' WHERE email='...'"` (mysql.exe nằm ở Program Files, không có trong PATH mặc định).                                                               |
+| **ON DELETE CASCADE qua Flyway V5**               | Xóa lesson phải dọn sạch quiz, questions, quiz_attempts, user_lesson_progress. Giải pháp sạch nhất là thêm CASCADE ở DB level thay vì xử lý thủ công trong service.                                                                                                                                                                                       |
+| **Seed chạy bằng `cmd /c`**                       | PowerShell pipe (`\|`) gây lỗi encoding UTF-8 với ký tự tiếng Việt/Nhật → dùng `cmd /c "mysql ... < file.sql"` để đảm bảo đúng charset.                                                                                                                                                                                                                   |
+| **VideoPlayer chỉ hỗ trợ YouTube**                | MP4Player bị xóa hoàn toàn. Tất cả video trong hệ thống phải là YouTube URL. Admin nhập YouTube URL → admin form detect tự động → IFrame API đọc duration. Không cần hỗ trợ MP4 trực tiếp cho thesis.                                                                                                                                                     |
+| **YouTube IFrame API thay vì iframe thô**         | iframe thô cần nút "Đã xem xong" thủ công vì không có event. IFrame API cho phép bắt `onStateChange` ENDED → tự navigate quiz, tự save progress, hoàn toàn custom controls. Trải nghiệm tốt hơn, logic đúng hơn.                                                                                                                                          |
+| **VNPay sandbox cho thanh toán**                  | TMN Code `76FLQ5YR`, Hash Secret `899P0KKH8KO1XUFD92BMGXRKJMRNKSTG` (sandbox only). Return URL backend: `http://localhost:8080/api/v1/payments/vnpay-return` — backend xử lý verify hash rồi redirect về frontend `/thanh-toan/ket-qua`. Khóa miễn phí (price=0) vẫn enroll trực tiếp không qua VNPay.                                                    |
+| **Admin Quiz chỉ sửa, không thêm/xóa câu**        | Cấu trúc 10 câu cố định (4 VOCABULARY + 3 CONTENT + 3 SEQUENCE) được seed sẵn. Admin chỉ cần sửa nội dung câu hỏi và đáp án — không cần thêm/xóa vì structure đã đúng. Đơn giản hơn, đủ dùng cho thesis.                                                                                                                                                  |
+| **Đổi vai trò VOCABULARY ↔ CONTENT (V10)**        | Học viên phản hồi gõ tự luận cho câu hỏi nội dung (CONTENT) khá khó vì có nhiều cách diễn đạt đúng. Đổi: VOCABULARY (từ vựng, đáp án ngắn/chắc chắn) → tự luận; CONTENT (hiểu nội dung video) → trắc nghiệm. Nhờ vậy dữ liệu seed gốc (`options`/`correct_option`) vẫn dùng được nguyên, chỉ cần migration backfill `correct_answer_text` cho VOCABULARY. |

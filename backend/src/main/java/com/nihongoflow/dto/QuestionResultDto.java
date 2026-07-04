@@ -7,8 +7,8 @@ import java.util.List;
 public record QuestionResultDto(
         Long questionId,
         String questionType,
-        Integer correctOption,      // VOCABULARY
-        String correctAnswerText,   // CONTENT
+        Integer correctOption,      // CONTENT
+        String correctAnswerText,   // VOCABULARY
         List<Integer> correctOrder, // SEQUENCE
         Object selectedAnswer       // Integer | String | List<Integer> | null nếu không trả lời
 ) {}

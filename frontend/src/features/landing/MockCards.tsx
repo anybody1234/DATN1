@@ -6,16 +6,13 @@ const MACOS_DOT_GREEN = "#28c840";
 
 export function MockLessonCard() {
   return (
-    <div
-      className="rounded-xl overflow-hidden select-none"
-      style={{ border: "1px solid rgba(255,255,255,0.09)", background: "#111" }}
-    >
+    <div className="mock-card rounded-xl overflow-hidden select-none">
       {/* Window chrome — macOS-style dots */}
       <div
         className="flex items-center gap-1.5 px-4 py-2.5"
         style={{
           borderBottom: "1px solid rgba(255,255,255,0.06)",
-          background: "#161616",
+          background: "var(--s2)",
         }}
       >
         <span
@@ -92,10 +89,7 @@ export function MockLessonCard() {
 export function MockQuizCard() {
   const opts = ["おはようございます", "こんにちは", "こんばんは", "ありがとう"];
   return (
-    <div
-      className="rounded-xl overflow-hidden select-none"
-      style={{ border: "1px solid rgba(255,255,255,0.09)", background: "#111" }}
-    >
+    <div className="mock-card rounded-xl overflow-hidden select-none">
       <div className="px-5 pt-5 pb-4">
         <div className="text-[11px] text-t3 uppercase tracking-widest mb-3">
           Quiz · Câu 3/5
@@ -127,10 +121,7 @@ export function MockStreakCard() {
   const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
   const done = [true, true, true, true, true, false, false];
   return (
-    <div
-      className="rounded-xl p-5 select-none"
-      style={{ border: "1px solid rgba(255,255,255,0.09)", background: "#111" }}
-    >
+    <div className="mock-card rounded-xl p-5 select-none">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-9 h-9 rounded-lg bg-acc/10 flex items-center justify-center">
           <Flame size={16} className="text-acc" />

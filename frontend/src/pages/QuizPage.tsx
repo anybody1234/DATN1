@@ -139,10 +139,7 @@ export function QuizPage() {
           ) : (
             <>
               <p className="text-t3 text-xs mb-0.5">Kiểm tra bài học</p>
-              <h1
-                className="text-t1 text-lg font-bold"
-                style={{ letterSpacing: "-0.02em" }}
-              >
+              <h1 className="text-t1 text-lg font-bold heading-tight">
                 {lesson?.title}
               </h1>
             </>

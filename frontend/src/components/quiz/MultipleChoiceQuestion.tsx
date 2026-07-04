@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-interface VocabularyQuestionProps {
+interface MultipleChoiceQuestionProps {
   content: string;
   options: readonly string[];
   selected: number | undefined;
@@ -9,14 +9,14 @@ interface VocabularyQuestionProps {
   readOnly?: boolean;
 }
 
-export function VocabularyQuestion({
+export function MultipleChoiceQuestion({
   content,
   options,
   selected,
   onSelect,
   correctOption,
   readOnly,
-}: VocabularyQuestionProps) {
+}: MultipleChoiceQuestionProps) {
   return (
     <div>
       <p className="text-t1 text-sm font-medium mb-3">{content}</p>

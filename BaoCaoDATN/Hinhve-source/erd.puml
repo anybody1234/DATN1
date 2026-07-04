@@ -1,0 +1,135 @@
+@startuml erd
+skinparam linetype ortho
+hide circle
+
+entity "users" as users {
+  * id : BIGINT <<PK>>
+  --
+  email : VARCHAR
+  password : VARCHAR
+  role : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity "refresh_tokens" as refresh_tokens {
+  * id : BIGINT <<PK>>
+  --
+  user_id : BIGINT <<FK>>
+  token : VARCHAR
+  expires_at : TIMESTAMP
+  revoked : BOOLEAN
+}
+
+entity "user_streaks" as user_streaks {
+  * user_id : BIGINT <<PK, FK>>
+  --
+  current_streak : INT
+  longest_streak : INT
+  last_activity_at : TIMESTAMP
+}
+
+entity "levels" as levels {
+  * id : BIGINT <<PK>>
+  --
+  name : VARCHAR
+  description : VARCHAR
+  order_index : INT
+}
+
+entity "courses" as courses {
+  * id : BIGINT <<PK>>
+  --
+  level_id : BIGINT <<FK>>
+  title : VARCHAR
+  description : TEXT
+  thumbnail_url : VARCHAR
+  order_index : INT
+  hidden : BOOLEAN
+  price : BIGINT
+}
+
+entity "lessons" as lessons {
+  * id : BIGINT <<PK>>
+  --
+  course_id : BIGINT <<FK>>
+  title : VARCHAR
+  video_url : VARCHAR
+  duration : INT
+  order_index : INT
+}
+
+entity "quizzes" as quizzes {
+  * id : BIGINT <<PK>>
+  --
+  lesson_id : BIGINT <<FK, UNIQUE>>
+  pass_score : INT
+}
+
+entity "questions" as questions {
+  * id : BIGINT <<PK>>
+  --
+  quiz_id : BIGINT <<FK>>
+  content : TEXT
+  options : JSON
+  correct_option : INT
+  correct_answer_text : VARCHAR
+  correct_order : JSON
+  order_index : INT
+  question_type : VARCHAR
+}
+
+entity "quiz_attempts" as quiz_attempts {
+  * id : BIGINT <<PK>>
+  --
+  user_id : BIGINT <<FK>>
+  quiz_id : BIGINT <<FK>>
+  score : INT
+  answers : JSON
+  attempted_at : TIMESTAMP
+  passed : BOOLEAN
+}
+
+entity "user_lesson_progress" as user_lesson_progress {
+  * user_id : BIGINT <<PK, FK>>
+  * lesson_id : BIGINT <<PK, FK>>
+  --
+  completed : BOOLEAN
+  watched_seconds : INT
+  updated_at : TIMESTAMP
+}
+
+entity "user_course_enrollments" as user_course_enrollments {
+  * user_id : BIGINT <<PK, FK>>
+  * course_id : BIGINT <<PK, FK>>
+  --
+  enrolled_at : TIMESTAMP
+}
+
+entity "payments" as payments {
+  * id : BIGINT <<PK>>
+  --
+  user_id : BIGINT <<FK>>
+  course_id : BIGINT <<FK>>
+  amount : BIGINT
+  vnp_txn_ref : VARCHAR
+  vnp_txn_id : VARCHAR
+  status : VARCHAR
+  created_at : TIMESTAMP
+  paid_at : TIMESTAMP
+}
+
+users ||--o{ refresh_tokens
+users ||--|| user_streaks
+levels ||--o{ courses
+courses ||--o{ lessons
+lessons ||--|| quizzes
+quizzes ||--o{ questions
+users ||--o{ quiz_attempts
+quizzes ||--o{ quiz_attempts
+users ||--o{ user_lesson_progress
+lessons ||--o{ user_lesson_progress
+users ||--o{ user_course_enrollments
+courses ||--o{ user_course_enrollments
+users ||--o{ payments
+courses ||--o{ payments
+@enduml

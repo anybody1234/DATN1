@@ -71,7 +71,7 @@ public class LessonService {
     }
 
     @Transactional
-    public void updateProgress(Long lessonId, int watchedSeconds, User user) {
+    public void updateProgress(Long lessonId, int watchedSeconds, boolean completed, User user) {
         Lesson lesson = lessonRepository.findByIdWithCourse(lessonId)
                 .orElseThrow(() -> ApiException.notFound("Bài học không tồn tại."));
         enrollmentService.requireEnrollment(lesson.getCourse().getId(), user);
@@ -79,16 +79,26 @@ public class LessonService {
                 .findByUserIdAndLessonId(user.getId(), lessonId)
                 .orElseGet(() -> new UserLessonProgress(user, lesson));
 
-        // Chỉ lưu watchedSeconds — completion chỉ được đặt bởi markCompleted()
-        // (khi quiz passed) hoặc khi frontend báo video kết thúc qua markCompleted trực tiếp.
-        // KHÔNG auto-complete tại 80% vì spec yêu cầu xem hết video (ended event).
+        // KHÔNG auto-complete tại 80% — spec yêu cầu xem hết video (ended event),
+        // báo qua flag `completed` khi frontend nhận onComplete.
         int clamped = lesson.getDuration() > 0
                 ? Math.min(watchedSeconds, lesson.getDuration())
                 : watchedSeconds;
         if (clamped > progress.getWatchedSeconds()) {
             progress.setWatchedSeconds(clamped);
         }
+
+        boolean newlyCompleted = completed && !progress.isCompleted();
+        if (newlyCompleted) {
+            progress.setCompleted(true);
+            if (lesson.getDuration() > 0) {
+                progress.setWatchedSeconds(lesson.getDuration());
+            }
+        }
         progressRepository.save(progress);
+        if (newlyCompleted) {
+            streakService.updateOnLessonCompleted(user);
+        }
     }
 
     @Transactional

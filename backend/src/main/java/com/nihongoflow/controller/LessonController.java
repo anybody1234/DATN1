@@ -50,7 +50,8 @@ public class LessonController {
             @Valid @RequestBody LessonProgressRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         User user = userService.getUserOrThrow(principal.getId());
-        lessonService.updateProgress(lessonId, request.watchedSeconds(), user);
+        lessonService.updateProgress(
+                lessonId, request.watchedSeconds(), Boolean.TRUE.equals(request.completed()), user);
         return ApiResponse.ok(null);
     }
 }

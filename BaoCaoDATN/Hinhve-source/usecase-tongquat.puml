@@ -1,0 +1,40 @@
+@startuml usecase-tongquat
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Học viên" as HV
+actor "Quản trị viên" as QTV
+
+rectangle "Hệ thống NihongoFlow" {
+  usecase "Đăng ký tài khoản" as UC1
+  usecase "Đăng nhập" as UC2
+  usecase "Đăng xuất" as UC3
+  usecase "Xem danh sách khóa học\ntheo cấp độ" as UC4
+  usecase "Đăng ký khóa học" as UC5
+  usecase "Thanh toán khóa học" as UC6
+  usecase "Xem video bài học" as UC7
+  usecase "Làm bài quiz" as UC8
+  usecase "Xem lịch sử và\nkết quả học tập" as UC9
+  usecase "Theo dõi chuỗi\nngày học (streak)" as UC10
+  usecase "Quản lý khóa học" as UC11
+  usecase "Quản lý bài học" as UC12
+  usecase "Quản lý câu hỏi quiz" as UC13
+}
+
+HV --> UC1
+HV --> UC2
+HV --> UC3
+HV --> UC4
+HV --> UC5
+HV --> UC7
+HV --> UC8
+HV --> UC9
+HV --> UC10
+UC5 ..> UC6 : <<extend>>\n[khóa học có phí]
+
+QTV --> UC2
+QTV --> UC3
+QTV --> UC11
+QTV --> UC12
+QTV --> UC13
+@enduml

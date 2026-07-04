@@ -93,8 +93,8 @@ public class QuizService {
         return new QuestionResultDto(
                 q.getId(),
                 q.getQuestionType(),
-                "VOCABULARY".equals(q.getQuestionType()) ? q.getCorrectOption() : null,
-                "CONTENT".equals(q.getQuestionType()) ? q.getCorrectAnswerText() : null,
+                "CONTENT".equals(q.getQuestionType()) ? q.getCorrectOption() : null,
+                "VOCABULARY".equals(q.getQuestionType()) ? q.getCorrectAnswerText() : null,
                 "SEQUENCE".equals(q.getQuestionType()) ? q.getCorrectOrder() : null,
                 selected);
     }
@@ -104,10 +104,10 @@ public class QuizService {
             return false;
         }
         switch (question.getQuestionType()) {
-            case "VOCABULARY" -> {
+            case "CONTENT" -> {
                 return selected instanceof Number n && n.intValue() == question.getCorrectOption();
             }
-            case "CONTENT" -> {
+            case "VOCABULARY" -> {
                 return selected instanceof String s
                         && question.getCorrectAnswerText() != null
                         && s.trim().equalsIgnoreCase(question.getCorrectAnswerText().trim());
@@ -136,12 +136,12 @@ public class QuizService {
         for (Question question : questions) {
             Object selected = answers.get(question.getId());
             switch (question.getQuestionType()) {
-                case "VOCABULARY" -> {
+                case "CONTENT" -> {
                     if (!(selected instanceof Number n) || n.intValue() < 0 || n.intValue() > 3) {
                         throw ApiException.validation("Câu trả lời không hợp lệ.");
                     }
                 }
-                case "CONTENT" -> {
+                case "VOCABULARY" -> {
                     if (!(selected instanceof String)) {
                         throw ApiException.validation("Câu trả lời không hợp lệ.");
                     }

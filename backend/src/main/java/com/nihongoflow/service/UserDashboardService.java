@@ -84,8 +84,8 @@ public class UserDashboardService {
                         q.getOptions(),
                         q.getQuestionType(),
                         q.getOrderIndex(),
-                        "VOCABULARY".equals(q.getQuestionType()) ? q.getCorrectOption() : null,
-                        "CONTENT".equals(q.getQuestionType()) ? q.getCorrectAnswerText() : null,
+                        "CONTENT".equals(q.getQuestionType()) ? q.getCorrectOption() : null,
+                        "VOCABULARY".equals(q.getQuestionType()) ? q.getCorrectAnswerText() : null,
                         "SEQUENCE".equals(q.getQuestionType()) ? q.getCorrectOrder() : null,
                         userAnswers.get(q.getId())))
                 .toList();

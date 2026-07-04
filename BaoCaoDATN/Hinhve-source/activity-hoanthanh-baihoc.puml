@@ -1,0 +1,35 @@
+@startuml activity-hoanthanh-baihoc
+start
+:Học viên mở bài học;
+if (Đã đăng ký khóa học?) then (không)
+  :Chuyển hướng về trang\nchi tiết khóa học;
+  stop
+else (có)
+endif
+:Xem video bài giảng;
+:Tự động lưu watchedSeconds\nđịnh kỳ (debounce >= 5s);
+if (Video phát tới sự kiện ended?) then (có)
+  if (Lần xem hoàn thành đầu tiên?) then (có)
+    :Đánh dấu bài học hoàn thành\n(completed = true);
+    :Cập nhật streak học tập;
+    :Tự động chuyển sang trang quiz;
+  else (không - đã hoàn thành trước đó)
+    :Cho phép xem lại tự do;
+    stop
+  endif
+else (chưa)
+  :Tiếp tục xem video;
+  stop
+endif
+:Làm 10 câu hỏi quiz\n(4 từ vựng + 3 nội dung + 3 trình tự);
+:Nộp bài;
+:Backend kiểm tra tập questionId\nvà chấm điểm theo questionType;
+:Lưu QuizAttempt;
+if (Điểm >= passScore?) then (đạt)
+  :Hiển thị kết quả "Đạt";
+else (không đạt)
+  :Hiển thị kết quả "Chưa đạt"\n+ nút "Làm lại";
+endif
+:Quay lại trang Dashboard;
+stop
+@enduml

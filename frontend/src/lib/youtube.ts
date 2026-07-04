@@ -36,6 +36,7 @@ interface YTPlayerOptions {
   events?: {
     onReady?: (e: { target: YTPlayer }) => void;
     onStateChange?: (e: { data: number; target: YTPlayer }) => void;
+    onApiChange?: (e: { target: YTPlayer }) => void;
     onError?: (e: { data: number }) => void;
   };
 }

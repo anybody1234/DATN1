@@ -36,12 +36,13 @@ Level (N5, N4, N3, N2, N1)
 
 ## Flyway Migrations
 
-| Version | File                                | Nội dung                                                                              |
-| ------- | ----------------------------------- | ------------------------------------------------------------------------------------- |
-| V1      | `V1__init.sql`                      | Schema gốc — tất cả bảng cơ bản                                                       |
-| V2      | `V2__add_question_fields.sql`       | Thêm `order_index`, `question_type` vào `questions`                                   |
-| V3      | `V3__add_course_enrollment.sql`     | Tạo bảng `user_course_enrollments`                                                    |
-| V9      | `V9__add_question_answer_types.sql` | Thêm `correct_answer_text`, `correct_order` vào `questions` (đáp án CONTENT/SEQUENCE) |
+| Version | File                                            | Nội dung                                                                                                 |
+| ------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| V1      | `V1__init.sql`                                  | Schema gốc — tất cả bảng cơ bản                                                                          |
+| V2      | `V2__add_question_fields.sql`                   | Thêm `order_index`, `question_type` vào `questions`                                                      |
+| V3      | `V3__add_course_enrollment.sql`                 | Tạo bảng `user_course_enrollments`                                                                       |
+| V9      | `V9__add_question_answer_types.sql`             | Thêm `correct_answer_text`, `correct_order` vào `questions` (đáp án CONTENT/SEQUENCE)                    |
+| V10     | `V10__swap_vocabulary_content_answer_types.sql` | Backfill `correct_answer_text` cho VOCABULARY (đổi vai trò: VOCABULARY → điền từ, CONTENT → trắc nghiệm) |
 
 ## Question Type Structure
 
@@ -77,9 +78,9 @@ Mỗi quiz có **đúng 10 câu**, chia 3 nhóm bắt buộc:
 
 - `options` in Question is a JSON array of 4 strings
 - `answers` in QuizAttempt is a JSON map of `questionId → answer`, where answer type depends on `questionType`:
-  `VOCABULARY` → number (0-3), `CONTENT` → string, `SEQUENCE` → number[] (thứ tự click)
+  `VOCABULARY` → string (điền từ), `CONTENT` → number (0-3, trắc nghiệm), `SEQUENCE` → number[] (thứ tự click)
 - `order` fields are 1-based integers used to sequence content
 - `questionType` values: `'VOCABULARY'`, `'CONTENT'`, `'SEQUENCE'`
-- `correctAnswerText` chỉ dùng cho `CONTENT`; `correctOrder` (JSON array index 0-3) chỉ dùng cho `SEQUENCE`; cả hai nullable
+- `correctAnswerText` chỉ dùng cho `VOCABULARY`; `correctOrder` (JSON array index 0-3) chỉ dùng cho `SEQUENCE`; `correctOption` dùng cho `CONTENT`
 - Never expose entity classes directly in API responses — always use DTOs
 - Run seed: `cmd /c "mysql.exe -u nihongo -p123456 nihongoflow < seed-data.sql"` (dùng cmd /c, không dùng PowerShell pipe để tránh encoding lỗi)

@@ -75,7 +75,7 @@ export interface AdminQuiz {
 }
 
 // Đáp án gửi lên / nhận về theo loại câu hỏi:
-// VOCABULARY -> số (index 0-3), CONTENT -> chuỗi, SEQUENCE -> mảng index theo thứ tự click
+// VOCABULARY -> chuỗi, CONTENT -> số (index 0-3), SEQUENCE -> mảng index theo thứ tự click
 export type AnswerValue = number | string | number[];
 
 export interface QuestionResult {

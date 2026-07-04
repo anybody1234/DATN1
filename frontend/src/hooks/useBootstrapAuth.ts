@@ -38,7 +38,8 @@ export function useBootstrapAuth() {
     return () => {
       cancelled = true;
     };
-  }, []); // chỉ chạy 1 lần khi mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ chạy 1 lần khi mount, không re-run khi initializing đổi
+  }, []);
 
   return initializing;
 }

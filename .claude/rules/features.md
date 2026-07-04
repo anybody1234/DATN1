@@ -37,8 +37,8 @@ QuizPage → submit quiz → result popup modal → "Về tổng quan" → /dash
 ## Quiz System
 
 - Questions per quiz: exactly **10 questions**, mandatory structure:
-  - `order_index` 1–4 : **VOCABULARY** (4 câu từ vựng liên quan video)
-  - `order_index` 5–7 : **CONTENT** (3 câu về nội dung video)
+  - `order_index` 1–4 : **VOCABULARY** (4 câu từ vựng liên quan video — điền từ)
+  - `order_index` 5–7 : **CONTENT** (3 câu về nội dung video — trắc nghiệm)
   - `order_index` 8–10: **SEQUENCE** (3 câu về trình tự sự kiện)
 - Pass threshold: **70%** N5-N3, **75%** N2, **80%** N1 (configurable per `Quiz.passScore`)
 - DB schema: `questions` table has `order_index INT`, `question_type VARCHAR(20)` (V2), `correct_answer_text VARCHAR(255)`, `correct_order JSON` (V9)
@@ -51,8 +51,8 @@ QuizPage → submit quiz → result popup modal → "Về tổng quan" → /dash
 
 | Type           | UI                                                                                                                | Answer shape (`AnswerValue`)                        | Grading                                                            |
 | -------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------ |
-| **VOCABULARY** | Trắc nghiệm 4 đáp án (`VocabularyQuestion`)                                                                       | `number` (0-3, chỉ số đáp án)                       | `selected === correctOption`                                       |
-| **CONTENT**    | Điền từ (`FillInBlankQuestion`, `<input type="text">`)                                                            | `string`                                            | So khớp `correctAnswerText`, **trim + không phân biệt hoa/thường** |
+| **VOCABULARY** | Điền từ (`FillInBlankQuestion`, `<input type="text">`)                                                            | `string`                                            | So khớp `correctAnswerText`, **trim + không phân biệt hoa/thường** |
+| **CONTENT**    | Trắc nghiệm 4 đáp án (`VocabularyQuestion`)                                                                       | `number` (0-3, chỉ số đáp án)                       | `selected === correctOption`                                       |
 | **SEQUENCE**   | Click chọn theo thứ tự (`SequenceOrderQuestion`) — click 1 item = gán vị trí tiếp theo (1→4); click lại = bỏ chọn | `number[]` (mảng index theo thứ tự click, length 4) | So khớp toàn bộ mảng với `correctOrder` (exact sequence match)     |
 
 - `QuizAttempt.answers` / `QuizAttemptRequest.answers`: `Map<Long, Object>` (backend) ↔ `Record<string, AnswerValue>` (frontend) — value type tùy theo `questionType`
@@ -63,10 +63,10 @@ QuizPage → submit quiz → result popup modal → "Về tổng quan" → /dash
 Sau khi xem hết video → flow 3 trang, đáp án giữ nguyên khi back/forward (state `answers`/`step` lift lên `QuizPage`):
 
 ```
-VocabularyStep (4 câu VOCABULARY)
+VocabularyStep (4 câu VOCABULARY — điền từ)
    "Tiếp theo" (phải, disable nếu chưa trả lời hết)
         ↓
-ContentStep (3 câu CONTENT — điền từ)
+ContentStep (3 câu CONTENT — trắc nghiệm)
    "Quay lại" (trái) / "Tiếp theo" (phải, disable nếu còn ô trống)
         ↓
 SequenceStep (3 câu SEQUENCE — click sắp xếp)
@@ -80,10 +80,8 @@ SequenceStep (3 câu SEQUENCE — click sắp xếp)
 
 ### Seed Data — CẦN ADMIN RÀ SOÁT
 
-- Migration V9 chỉ tạo **placeholder hợp lệ về kiểu dữ liệu** cho 144 câu CONTENT/SEQUENCE đã seed:
-  - CONTENT: `correct_answer_text` = text của `correct_option` cũ (không phải câu điền từ thật)
-  - SEQUENCE: `correct_order` = `[0,1,2,3]` (thứ tự đồng nhất, không phải thứ tự đúng thật)
-- Admin **phải** vào `AdminQuizPage` sửa lại nội dung câu hỏi (thêm chỗ trống `＿＿＿` cho CONTENT, sắp đúng thứ tự cho SEQUENCE) trước khi dùng thật
+- Sau khi đổi vai trò VOCABULARY ↔ CONTENT (V10): VOCABULARY (điền từ) và CONTENT (trắc nghiệm) đều dùng `options`/`correct_option` gốc từ V1 — **dữ liệu seed hợp lệ, không phải placeholder**, không cần admin sửa
+- Riêng **SEQUENCE** vẫn chỉ có placeholder hợp lệ về kiểu dữ liệu (`correct_order` = `[0,1,2,3]`, thứ tự đồng nhất, không phải thứ tự đúng thật) — admin **phải** vào `AdminQuizPage` sắp đúng thứ tự cho 72 câu SEQUENCE trước khi dùng thật
 
 ### Quiz Result Popup
 

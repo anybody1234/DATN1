@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Lesson } from "@/types";
 import { Button } from "@/components/ui/Button";
@@ -48,7 +48,9 @@ function LessonFormModal({
   const [detecting, setDetecting] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
   const urlRef = useRef(videoUrl);
-  urlRef.current = videoUrl;
+  useEffect(() => {
+    urlRef.current = videoUrl;
+  }, [videoUrl]);
 
   const mutation = useSaveLessonMutation(
     courseId,
@@ -85,10 +87,7 @@ function LessonFormModal({
       className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
-      <div
-        className="relative w-full max-w-[520px] rounded-2xl border border-b2 p-6"
-        style={{ background: "var(--s1)" }}
-      >
+      <div className="modal-surface relative w-full max-w-[520px] rounded-2xl border border-b2 p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-t1 font-bold text-base">
             {isEdit ? "Chỉnh sửa bài học" : "Thêm bài học mới"}
@@ -134,9 +133,9 @@ function LessonFormModal({
                   </>
                 ) : (
                   <>
-                    <FileVideo size={12} className="text-t3" />
-                    <span className="text-xs text-t3">
-                      Video trực tiếp (MP4)
+                    <FileVideo size={12} className="text-acc" />
+                    <span className="text-xs text-acc">
+                      URL không hợp lệ — chỉ hỗ trợ YouTube
                     </span>
                   </>
                 )}
@@ -264,10 +263,7 @@ function DeleteLessonModal({
       className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div
-        className="w-full max-w-[400px] rounded-2xl border border-b2 p-6 text-center"
-        style={{ background: "var(--s1)" }}
-      >
+      <div className="modal-surface w-full max-w-[400px] rounded-2xl border border-b2 p-6 text-center">
         <div className="w-12 h-12 rounded-full bg-acc-muted border border-acc-bd flex items-center justify-center mx-auto mb-4">
           <Trash2 size={20} className="text-acc" />
         </div>

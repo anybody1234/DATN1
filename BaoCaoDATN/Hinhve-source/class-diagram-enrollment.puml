@@ -1,0 +1,60 @@
+@startuml class-diagram-enrollment
+class User {
+  -id : Long
+  -email : String
+  -role : UserRole
+}
+
+class Course {
+  -id : Long
+  -title : String
+  -price : long
+  -hidden : boolean
+  -orderIndex : int
+}
+
+class UserCourseEnrollmentId {
+  -userId : Long
+  -courseId : Long
+}
+
+class UserCourseEnrollment {
+  -id : UserCourseEnrollmentId
+  -enrolledAt : Instant
+}
+
+class Payment {
+  -id : Long
+  -amount : long
+  -vnpTxnRef : String
+  -vnpTxnId : String
+  -status : String
+  -createdAt : Instant
+  -paidAt : Instant
+}
+
+class PaymentService {
+  +createPayment(courseId, userId, ip) : PaymentDto
+  +handleVnpayReturn(params) : ReturnResult
+}
+
+class EnrollmentService {
+  +enroll(courseId, user) : void
+}
+
+class VnpayService {
+  +buildPaymentUrl(txnRef, amount, info, ip) : String
+  +verifyReturn(params) : boolean
+}
+
+User "1" -- "*" UserCourseEnrollment
+Course "1" -- "*" UserCourseEnrollment
+UserCourseEnrollment *-- UserCourseEnrollmentId
+User "1" -- "*" Payment
+Course "1" -- "*" Payment
+
+PaymentService ..> Payment : tạo / cập nhật trạng thái
+PaymentService ..> VnpayService : sinh URL\n+ xác thực chữ ký
+PaymentService ..> EnrollmentService : gọi khi\nthanh toán thành công
+EnrollmentService ..> UserCourseEnrollment : tạo bản ghi
+@enduml

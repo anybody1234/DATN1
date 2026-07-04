@@ -24,8 +24,8 @@ export function AuthCard({ heading, subheading, children }: AuthCardProps) {
             日本語
           </span>
           <span
-            className="font-bold leading-none text-t1"
-            style={{ fontSize: AUTH_FONT.brandEn, letterSpacing: "-0.02em" }}
+            className="font-bold leading-none text-t1 heading-tight"
+            style={{ fontSize: AUTH_FONT.brandEn }}
           >
             Flow
           </span>

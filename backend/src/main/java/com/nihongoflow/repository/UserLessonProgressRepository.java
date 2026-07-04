@@ -14,15 +14,6 @@ public interface UserLessonProgressRepository extends JpaRepository<UserLessonPr
 
     List<UserLessonProgress> findByUserIdAndLessonIdIn(Long userId, Collection<Long> lessonIds);
 
-    @Query("""
-            select count(p) from UserLessonProgress p
-            where p.user.id = :userId and p.lesson.course.id = :courseId and p.completed = true
-            """)
-    long countCompletedLessons(@Param("userId") Long userId, @Param("courseId") Long courseId);
-
-    @Query("select distinct p.lesson.course.id from UserLessonProgress p where p.user.id = :userId")
-    List<Long> findCourseIdsWithProgressByUserId(@Param("userId") Long userId);
-
     // Batch: trả về số bài hoàn thành theo từng course — tránh N+1 trong getCourses()
     @Query("""
             select p.lesson.course.id, count(p)

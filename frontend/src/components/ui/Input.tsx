@@ -22,10 +22,8 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
           className,
         )}
         style={{
-          background: "#111111",
-          border: error
-            ? "1px solid #e94560"
-            : "1px solid rgba(255,255,255,0.08)",
+          background: "var(--s1)",
+          border: error ? "1px solid var(--acc)" : "1px solid var(--b1)",
         }}
         {...props}
       />

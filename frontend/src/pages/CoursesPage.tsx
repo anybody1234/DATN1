@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/Badge";
 import { BookOpen, Layers, AlertCircle } from "lucide-react";
@@ -68,9 +68,22 @@ function CourseCard({ course }: { course: Course }) {
 
 export function CoursesPage() {
   const [searchParams] = useSearchParams();
-  const [activeLevel, setActiveLevel] = useState<number | null>(null);
+  const levelName = searchParams.get("level");
 
   const { data: levels = [], isLoading: levelsLoading } = useLevels();
+
+  // Filter từ URL param ?level=N3 (từ LandingPage) — derive trực tiếp từ URL + data,
+  // override cục bộ khi người dùng tự bấm chọn level khác trong trang.
+  const urlDerivedLevel = useMemo(() => {
+    if (!levelName) return null;
+    return levels.find((lv) => lv.name === levelName)?.id ?? null;
+  }, [levelName, levels]);
+  const [overrideLevel, setOverrideLevel] = useState<number | null | undefined>(
+    undefined,
+  );
+  const activeLevel =
+    overrideLevel !== undefined ? overrideLevel : urlDerivedLevel;
+
   const {
     data: courses = [],
     isLoading,
@@ -78,20 +91,9 @@ export function CoursesPage() {
   } = useAllCourses(activeLevel);
 
   const handleLevelChange = (levelId: number | null) => {
-    setActiveLevel(levelId);
+    setOverrideLevel(levelId);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  // Áp dụng filter từ URL param ?level=N3 (từ LandingPage)
-  useEffect(() => {
-    const levelName = searchParams.get("level");
-    if (!levelName) {
-      setActiveLevel(null);
-    } else if (levels.length > 0) {
-      const matched = levels.find((lv) => lv.name === levelName);
-      setActiveLevel(matched?.id ?? null);
-    }
-  }, [levels, searchParams]);
 
   return (
     <div className="max-w-[1120px] mx-auto px-6 py-10">

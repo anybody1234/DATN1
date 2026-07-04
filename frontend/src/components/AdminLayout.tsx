@@ -31,10 +31,7 @@ export function AdminLayout() {
           style={{ borderColor: "rgba(255,255,255,0.06)" }}
         >
           <LayoutDashboard size={16} className="text-acc mr-2 shrink-0" />
-          <span
-            className="text-t1 font-bold text-sm"
-            style={{ letterSpacing: "-0.02em" }}
-          >
+          <span className="text-t1 font-bold text-sm heading-tight">
             Admin Panel
           </span>
         </div>

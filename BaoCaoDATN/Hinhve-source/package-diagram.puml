@@ -1,0 +1,42 @@
+@startuml package-diagram
+skinparam packageStyle rectangle
+
+package "Backend (Spring Boot)" {
+  package "controller" as ctrl
+  package "service" as svc
+  package "repository" as repo
+  package "entity" as ent
+  package "dto" as dto
+  package "security" as sec
+  package "config" as cfg
+  package "exception" as exc
+}
+
+package "Frontend (React)" {
+  package "pages" as pages
+  package "hooks" as hooks
+  package "lib" as lib
+  package "components" as comp
+  package "store" as store
+  package "types" as types
+}
+
+ctrl --> svc
+ctrl --> dto
+ctrl --> sec
+ctrl ..> exc
+svc --> repo
+svc --> ent
+svc --> exc
+repo --> ent
+cfg ..> sec
+
+pages --> hooks
+pages --> comp
+pages --> types
+hooks --> lib
+hooks --> store
+comp --> lib
+
+lib ..> ctrl : RESTful API\n(Axios)
+@enduml

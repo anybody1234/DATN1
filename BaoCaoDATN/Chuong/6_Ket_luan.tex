@@ -1,64 +1,63 @@
 \documentclass[../DoAn.tex]{subfiles}
 \begin{document}
-
 \section{Kết luận}
 \label{section:6.1}
 
 \subsection{So sánh với các nền tảng tương tự}
 
-So với các nền tảng đã khảo sát ở Mục \ref{section:2.1} (Bảng \ref{table:2.1}), NihongoFlow đáp ứng đồng thời các tiêu chí mà từng nền tảng riêng lẻ chưa đáp ứng đủ: hệ thống có nội dung video bài giảng được tổ chức theo cấp độ JLPT (như Duolingo, JapanesePod101), gắn kèm bài kiểm tra kiến thức ngay sau mỗi video (khắc phục hạn chế của các kênh YouTube thuần túy), hỗ trợ đa dạng nhóm câu hỏi (từ vựng, nội dung, trình tự -- vượt qua hình thức câu hỏi đơn điệu của WaniKani), và toàn bộ giao diện được bản địa hóa hoàn toàn bằng tiếng Việt cho người học Việt Nam. Ngoài ra, hệ thống còn bổ sung các yếu tố tạo động lực học tập (streak theo ngày, lịch sử và xem lại kết quả làm bài) cũng như cơ chế đăng ký khóa học có/không thu phí -- những yếu tố ít xuất hiện đồng thời trong các nền tảng được khảo sát.
+So với các nền tảng em đã khảo sát ở Mục \ref{section:2.1} (Bảng \ref{table:2.1}), NihongoFlow đáp ứng đồng thời các tiêu chí mà từng nền tảng riêng lẻ chưa đáp ứng đủ: hệ thống có nội dung video bài giảng được tổ chức theo cấp độ JLPT (như Duolingo, JapanesePod101), gắn kèm bài kiểm tra kiến thức ngay sau mỗi video (khắc phục hạn chế của các kênh YouTube thuần túy), hỗ trợ đa dạng nhóm câu hỏi (từ vựng, nội dung, trình tự -- vượt qua hình thức câu hỏi đơn điệu của WaniKani), và toàn bộ giao diện được em bản địa hóa hoàn toàn bằng tiếng Việt cho người học Việt Nam. Ngoài ra, em bổ sung các yếu tố tạo động lực học tập (streak theo ngày, lịch sử và xem lại kết quả làm bài) cũng như cơ chế đăng ký khóa học có/không thu phí -- những yếu tố ít xuất hiện đồng thời trong các nền tảng em đã khảo sát.
 
 \subsection{Kết quả đạt được}
 
-Qua quá trình thực hiện, đề tài đã hoàn thành các mục tiêu đề ra ở Mục \ref{section:1.2}:
+Qua quá trình thực hiện, em đã hoàn thành các mục tiêu đề ra ở Mục \ref{section:1.2}:
 
 \begin{itemize}
-    \item Xây dựng hoàn chỉnh backend RESTful API bằng Spring Boot, với xác thực JWT (access token + refresh token xoay vòng), phân quyền RBAC giữa STUDENT và ADMIN, và quản lý CSDL MySQL qua Flyway với 7 phiên bản migration.
+    \item Xây dựng hoàn chỉnh backend RESTful API bằng Spring Boot, với xác thực JWT (access token + refresh token xoay vòng), phân quyền RBAC giữa STUDENT và ADMIN, và quản lý lược đồ CSDL MySQL qua Flyway.
     \item Xây dựng nội dung học theo cấu trúc phân cấp Cấp độ -- Khóa học -- Bài học -- Quiz, với dữ liệu mẫu gồm 5 cấp độ, 10 khóa học, 24 bài học và 240 câu hỏi quiz chia theo 3 nhóm (VOCABULARY/CONTENT/SEQUENCE).
     \item Xây dựng trình phát video YouTube tùy biến với theo dõi tiến độ và luồng tự động chuyển sang quiz khi xem hết video lần đầu, cho phép xem lại tự do sau khi hoàn thành.
-    \item Xây dựng hệ thống quiz với chấm điểm tự động, lưu lịch sử làm bài và cho phép xem lại đáp án đúng/sai theo từng câu.
+    \item Xây dựng hệ thống quiz với cách chấm điểm riêng cho từng loại câu hỏi, lưu lịch sử làm bài và cho phép xem lại đáp án đúng/sai theo từng câu.
     \item Xây dựng cơ chế theo dõi streak học tập theo ngày (tính theo lịch, không phụ thuộc thời gian thực của client).
-    \item Xây dựng cơ chế đăng ký khóa học, hỗ trợ cả khóa học miễn phí (đăng ký trực tiếp) và khóa học có phí (qua cổng thanh toán VNPay sandbox với xác thực chữ ký HMAC-SHA512).
+    \item Xây dựng cơ chế đăng ký khóa học, hỗ trợ cả khóa học miễn phí (đăng ký trực tiếp) và khóa học có phí (qua cổng thanh toán VNPay sandbox với xác thực chữ ký HMAC-SHA512 và chống xử lý lại callback trùng lặp).
     \item Xây dựng khu vực quản trị riêng biệt (tách hoàn toàn khỏi giao diện học viên) cho phép quản lý CRUD khóa học, bài học và chỉnh sửa nội dung câu hỏi quiz.
-    \item Xây dựng frontend bằng React + TypeScript (strict mode), sử dụng TanStack Query và Zustand để quản lý dữ liệu và trạng thái, theo phong cách thiết kế tối giản, nền tối, nhất quán trên toàn hệ thống.
+    \item Xây dựng frontend bằng React + TypeScript (strict mode), sử dụng TanStack Query và Zustand để quản lý dữ liệu và trạng thái, theo phong cách thiết kế tối giản, nền tối, nhất quán trên toàn hệ thống, kèm bộ kiểm thử tự động cho các logic quan trọng ở cả hai phía backend và frontend.
 \end{itemize}
 
-Sáu đóng góp kỹ thuật nổi bật của đề tài -- thiết kế hệ thống quiz mở rộng theo kiểu câu hỏi, phân quyền tách biệt ADMIN/STUDENT, cơ chế JWT refresh token xoay vòng, tối ưu truy vấn N+1, trình phát video YouTube tùy biến, và tích hợp thanh toán VNPay -- đã được trình bày chi tiết tại Chương \ref{chapter:SolutionAndContribution}.
+Sáu đóng góp kỹ thuật em tâm đắc nhất -- thiết kế hệ thống quiz mở rộng theo kiểu câu hỏi, phân quyền tách biệt ADMIN/STUDENT, cơ chế JWT refresh token xoay vòng, tối ưu truy vấn N+1, trình phát video YouTube tùy biến, và tích hợp thanh toán VNPay -- đã được em trình bày chi tiết tại Chương \ref{chapter:SolutionAndContribution}.
 
 \subsection{Hạn chế còn tồn tại}
 
-Bên cạnh các kết quả đạt được, hệ thống còn một số hạn chế:
+Bên cạnh các kết quả đạt được, em nhận thấy hệ thống còn một số hạn chế:
 
 \begin{itemize}
-    \item \textbf{Chưa hỗ trợ kéo-thả sắp xếp thứ tự bài học}: thứ tự bài học trong khóa học hiện được lưu qua trường \texttt{order} nhưng chưa có giao diện kéo-thả (drag \& drop) để quản trị viên thay đổi thứ tự trực quan.
-    \item \textbf{Chưa phân trang lịch sử làm quiz}: trang Dashboard hiển thị toàn bộ lịch sử các lượt làm quiz của học viên mà chưa áp dụng phân trang, có thể ảnh hưởng hiệu năng khi số lượng lượt làm bài lớn.
-    \item \textbf{Giao diện chưa tối ưu cho thiết bị di động}: hệ thống được thiết kế theo hướng desktop-first; trải nghiệm trên màn hình nhỏ chưa được kiểm thử và tối ưu đầy đủ.
-    \item \textbf{Dạng câu hỏi quiz còn giới hạn ở trắc nghiệm 4 đáp án}: mặc dù thiết kế đã tính tới khả năng mở rộng (Mục \ref{section:5.1}), các dạng câu hỏi nâng cao hơn (nghe-chọn đáp án có audio riêng, điền từ, nối cặp) chưa được triển khai trong phạm vi đồ án này.
+    \item \textbf{Chưa hỗ trợ kéo-thả sắp xếp thứ tự bài học}: thứ tự bài học trong khóa học hiện được lưu qua trường \texttt{order} nhưng em chưa xây dựng giao diện kéo-thả để quản trị viên thay đổi thứ tự trực quan.
+    \item \textbf{Chưa phân trang lịch sử làm quiz}: trang Dashboard hiển thị toàn bộ lịch sử các lượt làm quiz của học viên mà em chưa áp dụng phân trang, có thể ảnh hưởng hiệu năng khi số lượng lượt làm bài lớn.
+    \item \textbf{Giao diện chưa tối ưu cho thiết bị di động}: em thiết kế hệ thống theo hướng desktop-first; trải nghiệm trên màn hình nhỏ chưa được em kiểm thử và tối ưu đầy đủ.
+    \item \textbf{Dạng câu hỏi quiz còn giới hạn ở ba nhóm hiện có}: mặc dù thiết kế đã tính tới khả năng mở rộng (Mục \ref{section:5.1}), các dạng câu hỏi nâng cao hơn (nghe-chọn đáp án có audio riêng, nối cặp từ vựng) chưa được em triển khai trong phạm vi đồ án này.
 \end{itemize}
 
 \subsection{Bài học kinh nghiệm}
 
-Quá trình thực hiện đồ án độc lập mang lại một số bài học kinh nghiệm quan trọng. Thứ nhất, việc đầu tư thời gian thiết kế schema CSDL tổng quát ngay từ đầu (đặc biệt là cách tổ chức bảng \texttt{questions}) giúp tránh được việc phải refactor lớn khi yêu cầu về loại câu hỏi thay đổi trong quá trình phát triển. Thứ hai, việc phân tách rõ ràng giữa hai vai trò người dùng ngay từ tầng kiến trúc (cả backend lẫn frontend) giúp giảm đáng kể số lượng lỗi liên quan tới phân quyền so với cách kiểm tra vai trò rải rác trong từng chức năng. Thứ ba, với một dự án do một sinh viên phát triển toàn bộ (cả backend lẫn frontend), việc lựa chọn các công nghệ có tài liệu phong phú và cộng đồng hỗ trợ tốt (Spring Boot, React, TanStack Query) giúp tiết kiệm đáng kể thời gian xử lý các vấn đề kỹ thuật phát sinh, từ đó dành nhiều thời gian hơn cho việc thiết kế nghiệp vụ và trải nghiệm người dùng.
+Quá trình thực hiện đồ án độc lập mang lại cho em một số bài học kinh nghiệm quan trọng. Thứ nhất, việc đầu tư thời gian thiết kế schema CSDL tổng quát ngay từ đầu (đặc biệt là cách tổ chức bảng \texttt{questions}) giúp em tránh được việc phải refactor lớn khi yêu cầu về loại câu hỏi thay đổi trong quá trình phát triển -- em chỉ cần bổ sung thêm cột cho schema hiện có thay vì thiết kế lại toàn bộ luồng chấm điểm. Thứ hai, việc phân tách rõ ràng giữa hai vai trò người dùng ngay từ tầng kiến trúc (cả backend lẫn frontend) giúp em giảm đáng kể số lượng lỗi liên quan tới phân quyền so với cách kiểm tra vai trò rải rác trong từng chức năng. Thứ ba, với một đồ án do một mình em phát triển toàn bộ (cả backend lẫn frontend), việc lựa chọn các công nghệ có tài liệu phong phú và cộng đồng hỗ trợ tốt (Spring Boot, React, TanStack Query) giúp em tiết kiệm đáng kể thời gian xử lý các vấn đề kỹ thuật phát sinh, từ đó dành nhiều thời gian hơn cho việc thiết kế nghiệp vụ và trải nghiệm người dùng.
 
 \section{Hướng phát triển}
 \label{section:6.2}
 
-Trên cơ sở các hạn chế đã nêu, đề tài đề xuất các hướng phát triển tiếp theo, chia thành hai nhóm.
+Trên cơ sở các hạn chế đã nêu, em đề xuất các hướng phát triển tiếp theo, chia thành hai nhóm.
 
 \textbf{Hoàn thiện các chức năng hiện có:}
 
 \begin{itemize}
-    \item Bổ sung giao diện kéo-thả (sử dụng thư viện \texttt{@dnd-kit/sortable}) để quản trị viên sắp xếp lại thứ tự bài học, gọi API \texttt{PATCH /admin/lessons/:id/order} đã được dự kiến trong thiết kế.
+    \item Bổ sung giao diện kéo-thả (sử dụng thư viện \texttt{\seqsplit{@dnd-kit/sortable}}) để quản trị viên sắp xếp lại thứ tự bài học, gọi API \texttt{\seqsplit{PATCH /admin/lessons/:id/order}} đã được em dự kiến trong thiết kế.
     \item Bổ sung phân trang cho danh sách lịch sử làm quiz trên trang Dashboard, đồng thời áp dụng cho các danh sách dài khác nếu phát sinh (ví dụ danh sách người dùng phía quản trị).
-    \item Tối ưu giao diện cho thiết bị di động: điều chỉnh layout, kích thước chữ và vùng chạm (touch target) cho các trang chính (Dashboard, trang xem video, trang quiz).
+    \item Tối ưu giao diện cho thiết bị di động: điều chỉnh layout, kích thước chữ và vùng chạm cho các trang chính (Dashboard, trang xem video, trang quiz).
 \end{itemize}
 
 \textbf{Mở rộng tính năng mới:}
 
 \begin{itemize}
-    \item Mở rộng hệ thống quiz với các dạng câu hỏi mới tận dụng thiết kế tổng quát đã có (Mục \ref{section:5.1}): câu hỏi nghe kèm audio, câu hỏi điền từ (fill-in-the-blank), câu hỏi nối cặp từ vựng -- chỉ cần bổ sung giá trị \texttt{questionType} mới và component hiển thị tương ứng ở frontend.
+    \item Mở rộng hệ thống quiz với các dạng câu hỏi mới tận dụng thiết kế tổng quát đã có (Mục \ref{section:5.1}): câu hỏi nghe kèm audio, câu hỏi nối cặp từ vựng -- chỉ cần bổ sung giá trị \texttt{questionType} mới và component hiển thị tương ứng ở frontend.
     \item Xây dựng hệ thống gợi ý lộ trình học cá nhân hóa dựa trên lịch sử làm quiz và tốc độ học của từng người dùng, có thể bắt đầu từ các quy tắc thống kê đơn giản trước khi cân nhắc áp dụng các mô hình học máy.
-    \item Bổ sung thông báo nhắc nhở học tập (ví dụ qua email) khi người dùng có nguy cơ mất chuỗi streak, nhằm tăng tỷ lệ duy trì học tập (retention).
+    \item Bổ sung thông báo nhắc nhở học tập (ví dụ qua email) khi người dùng có nguy cơ mất chuỗi streak, nhằm tăng tỷ lệ duy trì học tập.
     \item Mở rộng phương thức thanh toán ngoài VNPay (ví dụ Momo, ZaloPay) để tăng tính tiện lợi cho người dùng tại Việt Nam.
 \end{itemize}
 

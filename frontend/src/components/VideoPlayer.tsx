@@ -1,18 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  VideoOff,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
-  Captions,
-  CaptionsOff,
-} from "lucide-react";
+import { VideoOff } from "lucide-react";
 import { extractYouTubeId, loadYouTubeAPI } from "@/lib/youtube";
 import type { YTPlayer } from "@/lib/youtube";
-import { formatDuration } from "@/lib/utils";
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -23,9 +12,12 @@ interface VideoPlayerProps {
   onComplete: (finalSeconds: number) => void;
 }
 
-// ── YouTube custom player ─────────────────────────────────────────────────────
+// ── YouTube player (dùng control mặc định của YouTube) ────────────────────────
+// Dùng controls native của YouTube thay vì tự vẽ overlay — tránh nền/nút play
+// riêng của YouTube chồng lên UI tuỳ chỉnh. Chỉ cần theo dõi tiến trình xem
+// (progress) và bắt sự kiện kết thúc video qua IFrame API.
 
-function YouTubeCustomPlayer({
+function YouTubePlayer({
   videoUrl,
   lessonId,
   duration,
@@ -34,26 +26,22 @@ function YouTubeCustomPlayer({
   onComplete,
 }: VideoPlayerProps) {
   const ytWrapperRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(initialSeconds);
-  const [playerDuration, setPlayerDuration] = useState(duration);
-  const [muted, setMuted] = useState(false);
-  const [ready, setReady] = useState(false);
   const [videoError, setVideoError] = useState(false);
-  const [captionsOn, setCaptionsOn] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSavedRef = useRef(initialSeconds);
   const completedRef = useRef(false);
+  // Player chỉ thực sự có getCurrentTime()/getDuration() sau onReady — cần ref
+  // riêng vì state sẽ bị stale trong closure của cleanup.
+  const readyRef = useRef(false);
 
   const onProgressRef = useRef(onProgress);
-  onProgressRef.current = onProgress;
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+    onCompleteRef.current = onComplete;
+  }, [onProgress, onComplete]);
 
   // Chỉ dùng giá trị initialSeconds tại lần mount đầu tiên — prop này thay đổi
   // mỗi khi progress được lưu (query invalidation), nhưng không được phép
@@ -81,33 +69,45 @@ function YouTubeCustomPlayer({
         width: "100%",
         height: "100%",
         playerVars: {
-          controls: 0,
           modestbranding: 1,
           rel: 0,
-          disablekb: 1,
           iv_load_policy: 3,
           cc_load_policy: 1,
           cc_lang_pref: "vi",
-          fs: 0,
           start: Math.floor(initialSecondsRef.current),
           playsinline: 1,
+          // Dừng video tại thời điểm duration — cho phép dùng video dài nhưng
+          // chỉ yêu cầu học viên xem đến phần duration của bài học.
+          ...(duration > 0 && { end: Math.floor(duration) }),
         },
         events: {
           onReady: (e) => {
             if (cancelled) return;
-            const dur = e.target.getDuration();
-            if (dur > 0) setPlayerDuration(dur);
             e.target.loadModule("captions");
-            setReady(true);
+            readyRef.current = true;
+          },
+          onApiChange: (e) => {
+            if (cancelled) return;
+            // Tracklist phụ đề chỉ sẵn sàng sau khi module "captions" báo
+            // available qua onApiChange — ép về tiếng Việt (auto-translate
+            // nếu video không có sẵn track "vi").
+            const options = e.target.getOptions("captions");
+            if (!options.includes("track")) return;
+            const tracklist = e.target.getOption("captions", "tracklist") as
+              { languageCode: string }[] | undefined;
+            const viTrack = tracklist?.find((t) => t.languageCode === "vi");
+            e.target.setOption(
+              "captions",
+              "track",
+              viTrack ?? { languageCode: "vi" },
+            );
           },
           onStateChange: (e) => {
             if (cancelled) return;
-            setPlaying(e.data === 1); // PLAYING
             if (e.data === 0 && !completedRef.current) {
               // ENDED
               completedRef.current = true;
-              const finalDur =
-                playerRef.current?.getDuration() ?? playerDuration;
+              const finalDur = playerRef.current?.getDuration() ?? duration;
               onCompleteRef.current(Math.round(finalDur));
             }
           },
@@ -120,9 +120,8 @@ function YouTubeCustomPlayer({
 
     return () => {
       cancelled = true;
-      if (tickRef.current) clearInterval(tickRef.current);
       if (saveTimerRef.current) clearInterval(saveTimerRef.current);
-      if (playerRef.current && !completedRef.current) {
+      if (playerRef.current && readyRef.current && !completedRef.current) {
         const ct = playerRef.current.getCurrentTime();
         if (ct > 0) onProgressRef.current(Math.floor(ct));
       }
@@ -134,33 +133,12 @@ function YouTubeCustomPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, lessonId]);
 
-  // Hai interval dưới đây dùng dep [] vì cleanup hoàn toàn phụ thuộc vào việc
-  // parent truyền key={lesson.id} để force-remount khi đổi bài — xóa key đó sẽ gây memory leak.
-  useEffect(() => {
-    tickRef.current = setInterval(() => {
-      const ct = playerRef.current?.getCurrentTime() ?? 0;
-      setCurrentTime(ct);
-    }, 500);
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current);
-    };
-  }, []);
-
-  // Theo dõi trạng thái fullscreen — đồng bộ icon và xử lý cả khi user thoát bằng Esc
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === wrapperRef.current);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-
-  // Auto-save mỗi 10 giây, chỉ khi delta >= 5s
+  // Auto-save mỗi 10 giây, chỉ khi delta >= 5s — dùng dep [] vì cleanup phụ
+  // thuộc vào parent truyền key={lesson.id} để force-remount khi đổi bài.
   useEffect(() => {
     saveTimerRef.current = setInterval(() => {
-      if (!playerRef.current || completedRef.current) return;
+      if (!playerRef.current || !readyRef.current || completedRef.current)
+        return;
       const ct = playerRef.current.getCurrentTime();
       if (Math.abs(ct - lastSavedRef.current) >= 5) {
         lastSavedRef.current = ct;
@@ -172,60 +150,6 @@ function YouTubeCustomPlayer({
     };
   }, []);
 
-  const togglePlay = () => {
-    if (!playerRef.current) return;
-    playing ? playerRef.current.pauseVideo() : playerRef.current.playVideo();
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    playerRef.current?.seekTo(val, true);
-    setCurrentTime(val);
-  };
-
-  const toggleMute = () => {
-    if (!playerRef.current) return;
-    if (muted) {
-      playerRef.current.unMute();
-      setMuted(false);
-    } else {
-      playerRef.current.mute();
-      setMuted(true);
-    }
-  };
-
-  const handleFullscreen = () => {
-    if (document.fullscreenElement === wrapperRef.current) {
-      document.exitFullscreen?.();
-    } else {
-      wrapperRef.current?.requestFullscreen?.();
-    }
-  };
-
-  const toggleCaptions = () => {
-    const player = playerRef.current;
-    if (!player) return;
-    if (captionsOn) {
-      player.setOption("captions", "track", {});
-      setCaptionsOn(false);
-      return;
-    }
-    const tracklist = player.getOption("captions", "tracklist") as
-      | { languageCode: string }[]
-      | undefined;
-    const preferred =
-      tracklist?.find((t) => t.languageCode === "vi") ??
-      tracklist?.find((t) => t.languageCode === "ja") ??
-      tracklist?.[0];
-    player.setOption("captions", "track", preferred ?? { languageCode: "ja" });
-    setCaptionsOn(true);
-  };
-
-  const SEEK_MAX_FALLBACK = 100;
-  const seekMax =
-    playerDuration > 0 ? Math.floor(playerDuration) : SEEK_MAX_FALLBACK;
-  const pct = playerDuration > 0 ? (currentTime / playerDuration) * 100 : 0;
-
   if (videoError) {
     return (
       <div className="w-full aspect-video bg-s1 rounded-xl border border-b1 flex flex-col items-center justify-center gap-3 text-t3">
@@ -236,82 +160,9 @@ function YouTubeCustomPlayer({
   }
 
   return (
-    <div
-      ref={wrapperRef}
-      className="yt-player-wrapper relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-b1 group"
-    >
+    <div className="yt-player-wrapper relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-b1">
       {/* YouTube player container — React không quản lý nội dung bên trong */}
       <div ref={ytWrapperRef} className="yt-wrapper absolute inset-0" />
-
-      {/* Nút play trung tâm khi video đang dừng */}
-      {!playing && ready && (
-        <button
-          onClick={togglePlay}
-          className="absolute inset-0 flex items-center justify-center"
-          aria-label="Phát video"
-        >
-          <div className="w-16 h-16 rounded-full bg-black/60 flex items-center justify-center hover:bg-acc/70 transition-colors">
-            <Play size={28} className="text-white ml-1" />
-          </div>
-        </button>
-      )}
-
-      {/* Controls overlay — hiện khi hover, pointer-events-none trên container để click-through tới player */}
-      <div className="yt-controls-gradient absolute inset-x-0 bottom-0 px-4 pb-3 pt-14 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-        {/* Progress bar */}
-        <input
-          type="range"
-          min={0}
-          max={seekMax}
-          step={1}
-          value={Math.floor(currentTime)}
-          onChange={handleSeek}
-          disabled={!ready}
-          className="yt-progress w-full mb-2.5 pointer-events-auto"
-          style={{ "--yt-progress-pct": `${pct}%` } as React.CSSProperties}
-        />
-
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <button
-            onClick={togglePlay}
-            disabled={!ready}
-            className="text-white hover:text-acc transition-colors disabled:opacity-40"
-            aria-label={playing ? "Dừng" : "Phát"}
-          >
-            {playing ? <Pause size={18} /> : <Play size={18} />}
-          </button>
-
-          <span className="text-white/70 text-xs font-mono tabular-nums">
-            {formatDuration(Math.floor(currentTime))} /{" "}
-            {formatDuration(Math.floor(playerDuration))}
-          </span>
-
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={toggleCaptions}
-              disabled={!ready}
-              className="text-white hover:text-acc transition-colors disabled:opacity-40"
-              aria-label={captionsOn ? "Tắt phụ đề" : "Bật phụ đề"}
-            >
-              {captionsOn ? <Captions size={16} /> : <CaptionsOff size={16} />}
-            </button>
-            <button
-              onClick={toggleMute}
-              className="text-white hover:text-acc transition-colors"
-              aria-label={muted ? "Bật tiếng" : "Tắt tiếng"}
-            >
-              {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-            <button
-              onClick={handleFullscreen}
-              className="text-white hover:text-acc transition-colors"
-              aria-label={isFullscreen ? "Thu nhỏ" : "Toàn màn hình"}
-            >
-              {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -319,5 +170,5 @@ function YouTubeCustomPlayer({
 // ── Export ────────────────────────────────────────────────────────────────────
 
 export function VideoPlayer(props: VideoPlayerProps) {
-  return <YouTubeCustomPlayer {...props} />;
+  return <YouTubePlayer {...props} />;
 }

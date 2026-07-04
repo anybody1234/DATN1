@@ -37,7 +37,9 @@ export function LessonPage() {
 
   // Stable ref — tránh stale closure trong callbacks
   const progressMutationRef = useRef(progressMutation);
-  progressMutationRef.current = progressMutation;
+  useEffect(() => {
+    progressMutationRef.current = progressMutation;
+  }, [progressMutation]);
 
   // ── Guards ────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -64,14 +66,17 @@ export function LessonPage() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleProgress = useCallback((seconds: number) => {
-    progressMutationRef.current.mutate(seconds);
+    progressMutationRef.current.mutate({ watchedSeconds: seconds });
   }, []);
 
   const handleComplete = useCallback(
     (finalSeconds: number) => {
       if (navigatedRef.current) return;
       navigatedRef.current = true;
-      progressMutationRef.current.mutate(finalSeconds);
+      progressMutationRef.current.mutate({
+        watchedSeconds: finalSeconds,
+        completed: true,
+      });
       if (!wasCompletedRef.current) {
         navigate(`/khoa-hoc/${courseId}/bai-hoc/${lessonId}/quiz`);
       }
@@ -140,10 +145,7 @@ export function LessonPage() {
               )}
 
               <div className="flex items-start justify-between gap-3 mt-4 mb-2">
-                <h1
-                  className="text-t1 text-xl font-bold"
-                  style={{ letterSpacing: "-0.02em" }}
-                >
+                <h1 className="text-t1 text-xl font-bold heading-tight">
                   {lesson.title}
                 </h1>
                 {lesson.completed && (
@@ -216,11 +218,9 @@ export function LessonPage() {
                   )}
                   <span className="truncate">{l.title}</span>
                   {l.completed && (
-                    <ClipboardList
-                      size={11}
-                      className="text-t3 shrink-0 ml-auto"
-                      title="Có quiz"
-                    />
+                    <span title="Có quiz" className="ml-auto shrink-0">
+                      <ClipboardList size={11} className="text-t3" />
+                    </span>
                   )}
                 </div>
               </button>

@@ -1,0 +1,18 @@
+@startuml usecase-admin
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Quản trị viên" as QTV
+
+rectangle "Nhóm chức năng quản trị" {
+  usecase "Quản lý khóa học\n(tạo / sửa / xóa / ẩn-hiện)" as UC1
+  usecase "Quản lý bài học" as UC2
+  usecase "Quản lý câu hỏi quiz" as UC3
+}
+
+QTV --> UC1
+QTV --> UC2
+QTV --> UC3
+UC2 ..> UC1 : <<depend>>
+UC3 ..> UC1 : <<depend>>
+@enduml

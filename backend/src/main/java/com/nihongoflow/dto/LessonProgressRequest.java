@@ -8,5 +8,6 @@ public record LessonProgressRequest(
                 @NotNull(message = "watchedSeconds là bắt buộc")
                 @Min(value = 0, message = "watchedSeconds phải >= 0")
                 @Max(value = 86400, message = "watchedSeconds không được vượt quá 24 giờ")
-                Integer watchedSeconds) {
+                Integer watchedSeconds,
+                Boolean completed) {
 }

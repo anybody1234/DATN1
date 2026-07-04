@@ -1,0 +1,54 @@
+@startuml class-diagram-quiz
+class Lesson {
+  -id : Long
+  -title : String
+  -videoUrl : String
+  -duration : int
+  -orderIndex : int
+}
+
+class Quiz {
+  -id : Long
+  -passScore : int
+  +getLesson() : Lesson
+}
+
+class Question {
+  -id : Long
+  -content : String
+  -options : List<String>
+  -correctOption : int
+  -correctAnswerText : String
+  -correctOrder : List<Integer>
+  -orderIndex : int
+  -questionType : String
+  +getQuiz() : Quiz
+}
+
+class QuizAttempt {
+  -id : Long
+  -score : int
+  -passed : boolean
+  -answers : Map<Long, Object>
+  -attemptedAt : Instant
+  +getUser() : User
+  +getQuiz() : Quiz
+}
+
+class User {
+  -id : Long
+  -email : String
+  -role : UserRole
+}
+
+class QuizService {
+  +submitAttempt(quizId, answers, user) : QuizAttemptDto
+}
+
+Lesson "1" -- "1" Quiz
+Quiz "1" *-- "10" Question : gồm đúng 10 câu\n(4 VOCABULARY + 3 CONTENT + 3 SEQUENCE)
+Quiz "1" -- "*" QuizAttempt
+User "1" -- "*" QuizAttempt
+QuizService ..> Question : truy vấn đáp án đúng
+QuizService ..> QuizAttempt : tạo và lưu
+@enduml

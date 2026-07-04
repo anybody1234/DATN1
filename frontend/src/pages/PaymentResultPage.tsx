@@ -22,10 +22,7 @@ export function PaymentResultPage() {
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-6">
-      <div
-        className="w-full max-w-[420px] rounded-2xl border border-b2 p-8 text-center"
-        style={{ background: "var(--s1)" }}
-      >
+      <div className="modal-surface w-full max-w-[420px] rounded-2xl border border-b2 p-8 text-center">
         {success ? (
           <>
             <div className="w-16 h-16 rounded-full bg-acc/10 border border-acc/30 flex items-center justify-center mx-auto mb-5">
