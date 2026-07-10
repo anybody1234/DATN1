@@ -3,22 +3,16 @@ left to right direction
 skinparam packageStyle rectangle
 
 actor "Học viên" as HV
-actor "VNPay" as VNP
 
 rectangle "Nhóm chức năng thanh toán" {
   usecase "Đăng ký khóa học" as UC1
   usecase "Đăng ký trực tiếp\n(khóa học miễn phí)" as UC2
   usecase "Tạo giao dịch thanh toán" as UC3
   usecase "Thanh toán qua VNPay" as UC4
-  usecase "Xác thực callback\n(HMAC-SHA512)" as UC5
-  usecase "Ghi nhận đăng ký\nkhóa học (enroll)" as UC6
 }
 
 HV --> UC1
-UC1 ..> UC2 : <<extend>>\n[price = 0]
 UC1 ..> UC3 : <<extend>>\n[price > 0]
-HV --> UC4
+UC1 ..> UC2 : <<extend>>\n[price = 0]
 UC3 --> UC4
-VNP --> UC5
-UC5 --> UC6
 @enduml

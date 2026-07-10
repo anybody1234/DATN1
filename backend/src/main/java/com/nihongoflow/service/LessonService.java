@@ -14,10 +14,12 @@ import com.nihongoflow.repository.QuestionRepository;
 import com.nihongoflow.repository.QuizRepository;
 import com.nihongoflow.repository.UserLessonProgressRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class LessonService {
     private final LessonRepository lessonRepository;
     private final QuizRepository quizRepository;
@@ -25,21 +27,6 @@ public class LessonService {
     private final UserLessonProgressRepository progressRepository;
     private final StreakService streakService;
     private final EnrollmentService enrollmentService;
-
-    public LessonService(
-            LessonRepository lessonRepository,
-            QuizRepository quizRepository,
-            QuestionRepository questionRepository,
-            UserLessonProgressRepository progressRepository,
-            StreakService streakService,
-            EnrollmentService enrollmentService) {
-        this.lessonRepository = lessonRepository;
-        this.quizRepository = quizRepository;
-        this.questionRepository = questionRepository;
-        this.progressRepository = progressRepository;
-        this.streakService = streakService;
-        this.enrollmentService = enrollmentService;
-    }
 
     @Transactional(readOnly = true)
     public LessonDto getLesson(Long lessonId, User user) {

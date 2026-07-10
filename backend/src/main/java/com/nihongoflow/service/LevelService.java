@@ -7,17 +7,14 @@ import com.nihongoflow.repository.LevelRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class LevelService {
     private final LevelRepository levelRepository;
     private final CourseRepository courseRepository;
-
-    public LevelService(LevelRepository levelRepository, CourseRepository courseRepository) {
-        this.levelRepository = levelRepository;
-        this.courseRepository = courseRepository;
-    }
 
     public List<LevelDto> getLevels() {
         List<Level> levels = levelRepository.findAllByOrderByOrderIndexAsc();

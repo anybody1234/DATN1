@@ -3,14 +3,20 @@ package com.nihongoflow.entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "quiz_attempts")
+@Getter
+@Setter
 public class QuizAttempt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.NONE)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -29,6 +35,7 @@ public class QuizAttempt {
     private Map<Long, Object> answers;
 
     @Column(nullable = false)
+    @Setter(AccessLevel.NONE)
     private Instant attemptedAt;
 
     @Column(nullable = false)
@@ -39,53 +46,5 @@ public class QuizAttempt {
         if (attemptedAt == null) {
             attemptedAt = Instant.now();
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Quiz getQuiz() {
-        return quiz;
-    }
-
-    public void setQuiz(Quiz quiz) {
-        this.quiz = quiz;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    public Map<Long, Object> getAnswers() {
-        return answers;
-    }
-
-    public void setAnswers(Map<Long, Object> answers) {
-        this.answers = answers;
-    }
-
-    public Instant getAttemptedAt() {
-        return attemptedAt;
-    }
-
-    public boolean isPassed() {
-        return passed;
-    }
-
-    public void setPassed(boolean passed) {
-        this.passed = passed;
     }
 }

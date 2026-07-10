@@ -2,14 +2,20 @@ package com.nihongoflow.entity;
 
 import jakarta.persistence.*;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "questions")
+@Getter
+@Setter
 public class Question {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.NONE)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -38,72 +44,4 @@ public class Question {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "correct_order", columnDefinition = "json")
     private List<Integer> correctOrder;
-
-    public Long getId() {
-        return id;
-    }
-
-    public Quiz getQuiz() {
-        return quiz;
-    }
-
-    public void setQuiz(Quiz quiz) {
-        this.quiz = quiz;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public List<String> getOptions() {
-        return options;
-    }
-
-    public void setOptions(List<String> options) {
-        this.options = options;
-    }
-
-    public int getCorrectOption() {
-        return correctOption;
-    }
-
-    public void setCorrectOption(int correctOption) {
-        this.correctOption = correctOption;
-    }
-
-    public int getOrderIndex() {
-        return orderIndex;
-    }
-
-    public void setOrderIndex(int orderIndex) {
-        this.orderIndex = orderIndex;
-    }
-
-    public String getQuestionType() {
-        return questionType;
-    }
-
-    public void setQuestionType(String questionType) {
-        this.questionType = questionType;
-    }
-
-    public String getCorrectAnswerText() {
-        return correctAnswerText;
-    }
-
-    public void setCorrectAnswerText(String correctAnswerText) {
-        this.correctAnswerText = correctAnswerText;
-    }
-
-    public List<Integer> getCorrectOrder() {
-        return correctOrder;
-    }
-
-    public void setCorrectOrder(List<Integer> correctOrder) {
-        this.correctOrder = correctOrder;
-    }
 }

@@ -7,20 +7,15 @@ import com.nihongoflow.entity.UserRole;
 import com.nihongoflow.exception.ApiException;
 import com.nihongoflow.repository.CourseRepository;
 import com.nihongoflow.repository.UserCourseEnrollmentRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class EnrollmentService {
     private final UserCourseEnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
-
-    public EnrollmentService(
-            UserCourseEnrollmentRepository enrollmentRepository,
-            CourseRepository courseRepository) {
-        this.enrollmentRepository = enrollmentRepository;
-        this.courseRepository = courseRepository;
-    }
 
     @Transactional
     public void enroll(Long courseId, User user) {

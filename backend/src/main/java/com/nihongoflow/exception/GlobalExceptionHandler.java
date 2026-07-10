@@ -2,8 +2,7 @@ package com.nihongoflow.exception;
 
 import com.nihongoflow.dto.ApiErrorResponse;
 import jakarta.validation.ConstraintViolationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,8 +13,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiErrorResponse> handleApiException(ApiException ex) {
         return ResponseEntity

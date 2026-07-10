@@ -11,23 +11,16 @@ import com.nihongoflow.repository.LevelRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AdminCourseService {
     private final CourseRepository courseRepository;
     private final LevelRepository levelRepository;
     private final LessonRepository lessonRepository;
-
-    public AdminCourseService(
-            CourseRepository courseRepository,
-            LevelRepository levelRepository,
-            LessonRepository lessonRepository) {
-        this.courseRepository = courseRepository;
-        this.levelRepository = levelRepository;
-        this.lessonRepository = lessonRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<CourseDto> getAllCourses() {

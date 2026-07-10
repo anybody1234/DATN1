@@ -15,23 +15,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class CourseService {
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
     private final UserLessonProgressRepository progressRepository;
-
-    public CourseService(
-            CourseRepository courseRepository,
-            LessonRepository lessonRepository,
-            UserLessonProgressRepository progressRepository) {
-        this.courseRepository = courseRepository;
-        this.lessonRepository = lessonRepository;
-        this.progressRepository = progressRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<CourseDto> getCourses(Long levelId, User user) {

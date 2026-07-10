@@ -8,6 +8,7 @@ import com.nihongoflow.security.UserPrincipal;
 import com.nihongoflow.service.QuizService;
 import com.nihongoflow.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,14 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/quizzes")
+@RequiredArgsConstructor
 public class QuizController {
     private final QuizService quizService;
     private final UserService userService;
-
-    public QuizController(QuizService quizService, UserService userService) {
-        this.quizService = quizService;
-        this.userService = userService;
-    }
 
     @PostMapping("/{quizId}/attempts")
     public ApiResponse<QuizAttemptDto> submitAttempt(

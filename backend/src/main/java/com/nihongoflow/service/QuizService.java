@@ -14,29 +14,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class QuizService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final QuizAttemptRepository attemptRepository;
     private final LessonService lessonService;
     private final EnrollmentService enrollmentService;
-
-    public QuizService(
-            QuizRepository quizRepository,
-            QuestionRepository questionRepository,
-            QuizAttemptRepository attemptRepository,
-            LessonService lessonService,
-            EnrollmentService enrollmentService) {
-        this.quizRepository = quizRepository;
-        this.questionRepository = questionRepository;
-        this.attemptRepository = attemptRepository;
-        this.lessonService = lessonService;
-        this.enrollmentService = enrollmentService;
-    }
 
     @Transactional
     public QuizAttemptDto submitAttempt(Long quizId, Map<Long, Object> answers, User user) {

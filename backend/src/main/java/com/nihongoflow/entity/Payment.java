@@ -2,13 +2,19 @@ package com.nihongoflow.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "payments")
+@Getter
+@Setter
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.NONE)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -32,6 +38,7 @@ public class Payment {
     private String status = "PENDING";
 
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private Instant createdAt;
 
     @PrePersist
@@ -41,29 +48,4 @@ public class Payment {
 
     @Column(name = "paid_at")
     private Instant paidAt;
-
-    public Long getId() { return id; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public Course getCourse() { return course; }
-    public void setCourse(Course course) { this.course = course; }
-
-    public long getAmount() { return amount; }
-    public void setAmount(long amount) { this.amount = amount; }
-
-    public String getVnpTxnRef() { return vnpTxnRef; }
-    public void setVnpTxnRef(String vnpTxnRef) { this.vnpTxnRef = vnpTxnRef; }
-
-    public String getVnpTxnId() { return vnpTxnId; }
-    public void setVnpTxnId(String vnpTxnId) { this.vnpTxnId = vnpTxnId; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public Instant getCreatedAt() { return createdAt; }
-
-    public Instant getPaidAt() { return paidAt; }
-    public void setPaidAt(Instant paidAt) { this.paidAt = paidAt; }
 }

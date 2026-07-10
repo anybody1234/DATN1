@@ -2,9 +2,12 @@ package com.nihongoflow.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "user_lesson_progress")
+@Getter
 public class UserLessonProgress {
     @EmbeddedId
     private UserLessonProgressId id;
@@ -20,9 +23,11 @@ public class UserLessonProgress {
     private Lesson lesson;
 
     @Column(nullable = false)
+    @Setter
     private boolean completed;
 
     @Column(nullable = false)
+    @Setter
     private int watchedSeconds;
 
     @Column(nullable = false)
@@ -41,37 +46,5 @@ public class UserLessonProgress {
         this.id = new UserLessonProgressId(user.getId(), lesson.getId());
         this.user = user;
         this.lesson = lesson;
-    }
-
-    public UserLessonProgressId getId() {
-        return id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Lesson getLesson() {
-        return lesson;
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
-
-    public int getWatchedSeconds() {
-        return watchedSeconds;
-    }
-
-    public void setWatchedSeconds(int watchedSeconds) {
-        this.watchedSeconds = watchedSeconds;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 }

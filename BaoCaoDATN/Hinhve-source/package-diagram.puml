@@ -1,42 +1,135 @@
 @startuml package-diagram
 skinparam packageStyle rectangle
+skinparam shadowing false
 
-package "Backend (Spring Boot)" {
-  package "controller" as ctrl
-  package "service" as svc
-  package "repository" as repo
-  package "entity" as ent
-  package "dto" as dto
-  package "security" as sec
-  package "config" as cfg
-  package "exception" as exc
+package "frontend" {
+  package "routes" as fe_routes {
+  }
+  package "pages" as fe_pages {
+    package "học viên" as pages_student {
+    }
+    package "quản trị" as pages_admin {
+    }
+    package "xác thực" as pages_auth {
+    }
+  }
+  package "hooks" as fe_hooks {
+  }
+  package "components" as fe_comp {
+  }
 }
 
-package "Frontend (React)" {
-  package "pages" as pages
-  package "hooks" as hooks
-  package "lib" as lib
-  package "components" as comp
-  package "store" as store
-  package "types" as types
+package "backend" {
+  package "security" as be_sec {
+  }
+
+  package "controller" as be_ctrl {
+    package "AuthController" as c1 {
+    }
+    package "CourseController" as c2 {
+    }
+    package "LessonController" as c3 {
+    }
+    package "LevelController" as c4 {
+    }
+    package "QuizController" as c5 {
+    }
+    package "UserController" as c6 {
+    }
+    package "PaymentController" as c7 {
+    }
+    package "AdminCourseController" as c8 {
+    }
+    package "AdminLessonController" as c9 {
+    }
+    package "AdminQuizController" as c10 {
+    }
+  }
+  c1 -[hidden]right-> c2
+  c2 -[hidden]right-> c3
+  c3 -[hidden]right-> c4
+  c4 -[hidden]right-> c5
+  c6 -[hidden]right-> c7
+  c7 -[hidden]right-> c8
+  c8 -[hidden]right-> c9
+  c9 -[hidden]right-> c10
+  c1 -[hidden]down-> c6
+
+  package "service" as be_svc {
+    package "AuthService" as s1 {
+    }
+    package "CourseService" as s2 {
+    }
+    package "LessonService" as s3 {
+    }
+    package "LevelService" as s4 {
+    }
+    package "QuizService" as s5 {
+    }
+    package "UserService" as s6 {
+    }
+    package "EnrollmentService" as s7 {
+    }
+    package "PaymentService" as s8 {
+    }
+    package "VnpayService" as s9 {
+    }
+    package "StreakService" as s10 {
+    }
+    package "UserDashboardService" as s11 {
+    }
+    package "AdminCourseService" as s12 {
+    }
+    package "AdminLessonService" as s13 {
+    }
+    package "AdminQuizService" as s14 {
+    }
+  }
+  s1 -[hidden]right-> s2
+  s2 -[hidden]right-> s3
+  s3 -[hidden]right-> s4
+  s4 -[hidden]right-> s5
+  s5 -[hidden]right-> s6
+  s6 -[hidden]right-> s7
+  s8 -[hidden]right-> s9
+  s9 -[hidden]right-> s10
+  s10 -[hidden]right-> s11
+  s11 -[hidden]right-> s12
+  s12 -[hidden]right-> s13
+  s13 -[hidden]right-> s14
+  s1 -[hidden]down-> s8
+
+  package "repository" as be_repo {
+  }
+  package "entity" as be_ent {
+  }
+  package "dto" as be_dto {
+  }
+  package "config" as be_cfg {
+  }
+  package "exception" as be_exc {
+  }
 }
 
-ctrl --> svc
-ctrl --> dto
-ctrl --> sec
-ctrl ..> exc
-svc --> repo
-svc --> ent
-svc --> exc
-repo --> ent
-cfg ..> sec
+package "MySQL" as db {
+}
 
-pages --> hooks
-pages --> comp
-pages --> types
-hooks --> lib
-hooks --> store
-comp --> lib
+fe_routes ..> fe_pages
+fe_hooks ..> fe_pages
+fe_hooks ..> fe_comp
 
-lib ..> ctrl : RESTful API\n(Axios)
+fe_hooks ..> be_sec : RESTful API (Axios)
+
+be_cfg ..> be_sec
+be_sec ..> be_ctrl : JwtAuthenticationFilter
+
+be_ctrl --> be_svc
+be_ctrl --> be_dto
+be_ctrl ..> be_exc
+be_svc --> be_repo
+be_svc --> be_dto
+be_svc ..> be_exc
+be_repo --> be_ent
+
+be_ent --> db : JPA/Hibernate
 @enduml

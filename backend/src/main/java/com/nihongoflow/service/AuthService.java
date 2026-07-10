@@ -11,30 +11,19 @@ import com.nihongoflow.repository.UserRepository;
 import com.nihongoflow.security.JwtService;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
-
-    public AuthService(
-            UserRepository userRepository,
-            RefreshTokenRepository refreshTokenRepository,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService,
-            JwtProperties jwtProperties) {
-        this.userRepository = userRepository;
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-        this.jwtProperties = jwtProperties;
-    }
 
     @Transactional
     public AuthSession register(String email, String password) {

@@ -9,6 +9,7 @@ import com.nihongoflow.security.UserPrincipal;
 import com.nihongoflow.service.LessonService;
 import com.nihongoflow.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,14 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/lessons")
+@RequiredArgsConstructor
 public class LessonController {
     private final LessonService lessonService;
     private final UserService userService;
-
-    public LessonController(LessonService lessonService, UserService userService) {
-        this.lessonService = lessonService;
-        this.userService = userService;
-    }
 
     @GetMapping("/{lessonId}")
     public ApiResponse<LessonDto> getLesson(

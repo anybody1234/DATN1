@@ -9,6 +9,7 @@ import com.nihongoflow.service.CourseService;
 import com.nihongoflow.service.EnrollmentService;
 import com.nihongoflow.service.UserService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,19 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/courses")
+@RequiredArgsConstructor
 public class CourseController {
     private final CourseService courseService;
     private final UserService userService;
     private final EnrollmentService enrollmentService;
-
-    public CourseController(
-            CourseService courseService,
-            UserService userService,
-            EnrollmentService enrollmentService) {
-        this.courseService = courseService;
-        this.userService = userService;
-        this.enrollmentService = enrollmentService;
-    }
 
     @GetMapping
     public ApiResponse<List<CourseDto>> getCourses(

@@ -11,10 +11,12 @@ import com.nihongoflow.repository.UserRepository;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
 
     private static final String STATUS_PENDING = "PENDING";
@@ -26,19 +28,6 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final VnpayService vnpayService;
     private final EnrollmentService enrollmentService;
-
-    public PaymentService(
-            PaymentRepository paymentRepository,
-            CourseRepository courseRepository,
-            UserRepository userRepository,
-            VnpayService vnpayService,
-            EnrollmentService enrollmentService) {
-        this.paymentRepository = paymentRepository;
-        this.courseRepository = courseRepository;
-        this.userRepository = userRepository;
-        this.vnpayService = vnpayService;
-        this.enrollmentService = enrollmentService;
-    }
 
     @Transactional
     public PaymentDto createPayment(Long courseId, Long userId, String ipAddr) {

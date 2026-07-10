@@ -12,27 +12,18 @@ import com.nihongoflow.repository.QuizAttemptRepository;
 import com.nihongoflow.repository.UserCourseEnrollmentRepository;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UserDashboardService {
     private final CourseService courseService;
     private final QuizAttemptRepository attemptRepository;
     private final QuestionRepository questionRepository;
     private final UserCourseEnrollmentRepository enrollmentRepository;
-
-    public UserDashboardService(
-            CourseService courseService,
-            QuizAttemptRepository attemptRepository,
-            QuestionRepository questionRepository,
-            UserCourseEnrollmentRepository enrollmentRepository) {
-        this.courseService = courseService;
-        this.attemptRepository = attemptRepository;
-        this.questionRepository = questionRepository;
-        this.enrollmentRepository = enrollmentRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<CourseDto> getMyCourses(User user) {

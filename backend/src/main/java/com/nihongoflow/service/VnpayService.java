@@ -12,16 +12,14 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class VnpayService {
 
     private final VnpayProperties props;
-
-    public VnpayService(VnpayProperties props) {
-        this.props = props;
-    }
 
     @PostConstruct
     private void validate() {

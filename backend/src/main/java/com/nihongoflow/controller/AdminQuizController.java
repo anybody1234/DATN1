@@ -7,6 +7,7 @@ import com.nihongoflow.dto.CreateQuizRequest;
 import com.nihongoflow.dto.QuestionRequest;
 import com.nihongoflow.service.AdminQuizService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,13 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/admin")
+@RequiredArgsConstructor
 public class AdminQuizController {
 
     private final AdminQuizService adminQuizService;
-
-    public AdminQuizController(AdminQuizService adminQuizService) {
-        this.adminQuizService = adminQuizService;
-    }
 
     @GetMapping("/lessons/{lessonId}/quiz")
     public ApiResponse<AdminQuizDto> getQuiz(@PathVariable Long lessonId) {

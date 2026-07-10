@@ -1,0 +1,18 @@
+@startuml package-diagram-tongquan
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "frontend\n(React SPA)" as fe
+package "backend\n(Spring Boot REST API)" as be
+database "Cơ sở dữ liệu\n(MySQL)" as db
+
+fe --> be : RESTful API\n(JSON qua Axios)
+be --> db : JPA / Hibernate
+
+note right of be
+  backend còn gọi ra 2 dịch vụ
+  bên thứ ba (không thuộc hệ thống):
+  VNPay (thanh toán) và
+  YouTube IFrame API (video)
+end note
+@enduml

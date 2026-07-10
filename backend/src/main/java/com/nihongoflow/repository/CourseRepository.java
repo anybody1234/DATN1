@@ -16,7 +16,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     List<Course> findByIdInOrderByOrderIndexAsc(Collection<Long> ids);
 
-    @Query("select c.level.id, count(c) from Course c group by c.level.id")
+    @Query("select c.level.id, count(c) from Course c where c.hidden = false group by c.level.id")
     List<Object[]> countGroupByLevel();
 
     @Query("select max(c.orderIndex) from Course c")

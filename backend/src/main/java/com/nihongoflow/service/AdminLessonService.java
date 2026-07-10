@@ -8,18 +8,15 @@ import com.nihongoflow.exception.ApiException;
 import com.nihongoflow.repository.CourseRepository;
 import com.nihongoflow.repository.LessonRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AdminLessonService {
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
-
-    public AdminLessonService(LessonRepository lessonRepository, CourseRepository courseRepository) {
-        this.lessonRepository = lessonRepository;
-        this.courseRepository = courseRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<LessonDto> getLessons(Long courseId) {

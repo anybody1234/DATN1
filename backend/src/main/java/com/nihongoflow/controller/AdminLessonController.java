@@ -6,6 +6,7 @@ import com.nihongoflow.dto.LessonRequest;
 import com.nihongoflow.service.AdminLessonService;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,12 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/admin")
+@RequiredArgsConstructor
 public class AdminLessonController {
     private final AdminLessonService adminLessonService;
-
-    public AdminLessonController(AdminLessonService adminLessonService) {
-        this.adminLessonService = adminLessonService;
-    }
 
     @GetMapping("/courses/{courseId}/lessons")
     public ApiResponse<List<LessonDto>> getLessons(@PathVariable Long courseId) {

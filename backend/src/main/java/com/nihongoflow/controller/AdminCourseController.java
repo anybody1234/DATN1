@@ -6,17 +6,15 @@ import com.nihongoflow.dto.CourseRequest;
 import com.nihongoflow.service.AdminCourseService;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/admin/courses")
+@RequiredArgsConstructor
 public class AdminCourseController {
     private final AdminCourseService adminCourseService;
-
-    public AdminCourseController(AdminCourseService adminCourseService) {
-        this.adminCourseService = adminCourseService;
-    }
 
     @GetMapping
     public ApiResponse<List<CourseDto>> getAll() {

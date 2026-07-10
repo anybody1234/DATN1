@@ -13,6 +13,5 @@ rectangle "Nhóm chức năng quản trị" {
 QTV --> UC1
 QTV --> UC2
 QTV --> UC3
-UC2 ..> UC1 : <<depend>>
-UC3 ..> UC1 : <<depend>>
+
 @enduml

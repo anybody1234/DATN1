@@ -2,9 +2,11 @@ package com.nihongoflow.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import lombok.Getter;
 
 @Entity
 @Table(name = "user_course_enrollments")
+@Getter
 public class UserCourseEnrollment {
 
     @EmbeddedId
@@ -33,12 +35,6 @@ public class UserCourseEnrollment {
     public UserCourseEnrollment(User user, Course course) {
         this.user = user;
         this.course = course;
-        this.id.setUserId(user.getId());
-        this.id.setCourseId(course.getId());
     }
 
-    public UserCourseEnrollmentId getId() { return id; }
-    public User getUser() { return user; }
-    public Course getCourse() { return course; }
-    public Instant getEnrolledAt() { return enrolledAt; }
 }

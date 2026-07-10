@@ -25,14 +25,78 @@ So với mô hình MVC truyền thống, kiến trúc trên có thể coi lớp 
 \subsection{Thiết kế tổng quan}
 \label{subsection:4.1.2}
 
-Hình \ref{fig:package-diagram} mô tả biểu đồ gói của toàn bộ hệ thống, bao gồm các gói backend (\texttt{controller}, \texttt{service}, \texttt{repository}, \texttt{entity}, \texttt{dto}, \texttt{security}, \texttt{config}, \texttt{exception}) và các gói frontend (\texttt{pages}, \texttt{hooks}, \texttt{lib}, \texttt{components}, \texttt{store}, \texttt{types}). Em thiết kế quan hệ phụ thuộc tuân theo nguyên tắc một chiều: \texttt{controller} phụ thuộc \texttt{service}, \texttt{service} phụ thuộc \texttt{repository} và \texttt{entity}; không có chiều phụ thuộc ngược lại. Tương tự, \texttt{pages} phụ thuộc \texttt{hooks} và \texttt{components}, \texttt{hooks} phụ thuộc \texttt{lib} và \texttt{store}, không có gói tầng dưới phụ thuộc ngược lên tầng trên.
+Ở mức tổng quan nhất, em chia hệ thống thành ba gói lớn: \texttt{frontend}, \texttt{backend} và cơ sở dữ liệu, minh họa trong Hình \ref{fig:package-diagram-tongquan}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.72\textwidth]{Hinhve/package-diagram.png}
+    \includegraphics[width=0.7\textwidth]{Hinhve/package-diagram-tongquan.png}
     \caption{Biểu đồ gói tổng quan hệ thống NihongoFlow}
+    \label{fig:package-diagram-tongquan}
+\end{figure}
+
+\textbf{Gói \texttt{frontend}.} \textit{Mục đích:} là gói chịu trách nhiệm hiển thị giao diện và tiếp nhận tương tác của cả hai nhóm người dùng (học viên, quản trị viên) -- cửa ngõ duy nhất mà người dùng tiếp xúc trực tiếp. \textit{Nhiệm vụ:}
+\begin{itemize}
+    \item Hiển thị nội dung học (khóa học, bài học, quiz) và khu vực quản trị dưới dạng giao diện web.
+    \item Gửi yêu cầu (API call) tới \texttt{backend} cho mọi thao tác cần dữ liệu hoặc thay đổi trạng thái: đăng nhập, đăng ký khóa học, nộp bài quiz, quản trị nội dung, v.v.
+    \item Giao tiếp một chiều với \texttt{backend} qua RESTful API -- không tự xử lý nghiệp vụ, không truy cập trực tiếp cơ sở dữ liệu.
+\end{itemize}
+
+\textbf{Gói \texttt{backend}.} \textit{Mục đích:} là gói trung tâm xử lý toàn bộ logic nghiệp vụ, đóng vai trò cầu nối giữa \texttt{frontend} và cơ sở dữ liệu, đồng thời là nơi duy nhất giao tiếp với các dịch vụ bên thứ ba. \textit{Nhiệm vụ:}
+\begin{itemize}
+    \item Xử lý các luồng nghiệp vụ: xác thực JWT, phân quyền RBAC, chấm điểm quiz, tính streak, xử lý thanh toán.
+    \item Giao tiếp với cơ sở dữ liệu để đọc/ghi dữ liệu thông qua Spring Data JPA/Hibernate.
+    \item Gọi tới cổng thanh toán VNPay để sinh URL thanh toán và xác thực callback; phía \texttt{frontend} gọi trực tiếp YouTube IFrame API để phát video (không đi qua \texttt{backend}).
+    \item Đảm bảo \texttt{frontend} không cần biết cấu trúc dữ liệu nội bộ hay quy tắc nghiệp vụ.
+\end{itemize}
+
+\textbf{Gói cơ sở dữ liệu (MySQL).} \textit{Mục đích:} lưu trữ bền vững toàn bộ dữ liệu của hệ thống, đảm bảo toàn vẹn tham chiếu giữa các thực thể có quan hệ phân cấp chặt chẽ (Cấp độ -- Khóa học -- Bài học -- Quiz). \textit{Nhiệm vụ:}
+\begin{itemize}
+    \item Lưu trữ thông tin người dùng, nội dung học, lượt làm quiz, tiến độ học tập, giao dịch thanh toán.
+    \item Đảm bảo tính nhất quán qua ràng buộc khóa ngoại và \texttt{ON DELETE CASCADE}.
+    \item Chỉ được truy cập gián tiếp thông qua \texttt{backend} (qua JPA), không giao tiếp trực tiếp với \texttt{frontend}.
+\end{itemize}
+
+\textbf{Mối quan hệ giữa các gói.}
+\begin{itemize}
+    \item \texttt{frontend} $\to$ \texttt{backend}: mọi chức năng của người dùng (đăng nhập, đăng ký khóa học, làm quiz, quản trị nội dung...) đều được gửi về \texttt{backend} xử lý và trả kết quả qua JSON.
+    \item \texttt{backend} $\to$ cơ sở dữ liệu: \texttt{backend} phụ thuộc cơ sở dữ liệu để lưu trữ và truy xuất toàn bộ dữ liệu nghiệp vụ, thực hiện thông qua Spring Data JPA/Hibernate.
+    \item \texttt{backend} $\to$ VNPay: phụ thuộc một chiều ra dịch vụ bên thứ ba, chỉ để sinh URL thanh toán và xác thực chữ ký callback -- không có chiều phụ thuộc ngược lại.
+\end{itemize}
+
+Đi sâu hơn vào cấu trúc bên trong hai gói \texttt{frontend} và \texttt{backend}, Hình \ref{fig:package-diagram} mô tả biểu đồ gói chi tiết, phân rã mỗi gói lớn thành các gói con theo đúng cấu trúc thư mục mã nguồn và kiến trúc phân tầng ba lớp đã trình bày ở Mục \ref{subsection:4.1.1}. Phía frontend gồm \texttt{routes} (định tuyến bằng React Router trong \texttt{App.tsx}) dẫn tới \texttt{pages} -- chia thành ba nhóm theo vai trò người dùng: \textit{học viên}, \textit{quản trị}, \textit{xác thực} -- cùng \texttt{hooks} (tầng gọi API, tương ứng vai trò của gói \texttt{services} trong các framework khác) và \texttt{components}. Phía backend -- nơi tập trung phần lớn logic nghiệp vụ -- em vẽ chi tiết tới từng lớp con của hai gói \texttt{controller} (đủ 10 lớp Controller) và \texttt{service} (đủ 14 lớp Service), cùng các gói hỗ trợ \texttt{security} (bộ lọc JWT, đóng vai trò tương đương \texttt{middlewares}), \texttt{config}, \texttt{repository}, \texttt{entity}, \texttt{dto}, \texttt{exception}. Hệ thống không có phân hệ học máy hay tác vụ định kỳ (cron job) như một số đồ án tham khảo khác, nên biểu đồ không có các gói tương ứng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Hinhve/package-diagram.png}
+    \caption{Biểu đồ gói chi tiết hệ thống NihongoFlow}
     \label{fig:package-diagram}
 \end{figure}
+
+\subsubsection{Gói backend}
+
+\begin{itemize}
+    \item \texttt{controller}: tiếp nhận request HTTP, validate đầu vào bằng \texttt{@Valid}, ánh xạ sang DTO và gọi \texttt{service} tương ứng -- không chứa logic nghiệp vụ.
+    \item \texttt{service}: tầng nghiệp vụ chính -- chấm điểm quiz, kiểm tra điều kiện đăng ký khóa học, cập nhật streak, xác thực chữ ký VNPay, v.v.
+    \item \texttt{repository}: các interface kế thừa \texttt{JpaRepository}, chỉ định nghĩa truy vấn (kể cả truy vấn tùy biến bằng \texttt{@Query}), không chứa logic.
+    \item \texttt{entity}: các lớp JPA ánh xạ trực tiếp tới bảng cơ sở dữ liệu (\texttt{Question}, \texttt{QuizAttempt}, \texttt{User}, v.v.).
+    \item \texttt{dto}: đối tượng truyền dữ liệu cho request/response, đảm bảo entity không bao giờ lộ trực tiếp qua API.
+    \item \texttt{security}: bộ lọc xác thực JWT (\texttt{JwtAuthenticationFilter}), sinh/giải mã token (\texttt{JwtService}), cấu hình \texttt{UserDetailsService}.
+    \item \texttt{config}: cấu hình Spring (\texttt{SecurityConfig}, CORS, thuộc tính VNPay, cookie).
+    \item \texttt{exception}: xử lý lỗi tập trung qua \texttt{@RestControllerAdvice} (\texttt{GlobalExceptionHandler}) và \texttt{ApiException}, đảm bảo mọi lỗi trả về đúng envelope chuẩn.
+\end{itemize}
+
+\subsubsection{Gói frontend}
+
+\begin{itemize}
+    \item \texttt{pages}: hiển thị giao diện và xử lý điều hướng cho từng trang -- chỉ lấy dữ liệu thông qua \texttt{hooks}, không gọi Axios trực tiếp.
+    \item \texttt{hooks}: toàn bộ \texttt{useQuery}/\texttt{useMutation} (TanStack Query) tổ chức theo domain (\texttt{useCourse}, \texttt{useQuiz}, \texttt{useDashboard}, v.v.), xử lý cache và invalidation.
+    \item \texttt{lib}: hàm thuần, hằng số dùng chung và instance Axios duy nhất (\texttt{axios.ts}).
+    \item \texttt{components}: thành phần giao diện tái sử dụng (\texttt{VideoPlayer}, các bước của quiz wizard, \texttt{Navbar}, v.v.).
+    \item \texttt{store}: trạng thái xác thực phía client quản lý bằng Zustand (\texttt{authStore.ts}).
+    \item \texttt{types}: toàn bộ khai báo kiểu TypeScript dùng chung giữa các gói trên.
+\end{itemize}
+
+Em thiết kế quan hệ phụ thuộc giữa các gói con tuân theo nguyên tắc một chiều: \texttt{controller} phụ thuộc \texttt{service}, \texttt{service} phụ thuộc \texttt{repository} và \texttt{entity}; không có chiều phụ thuộc ngược lại. Tương tự, \texttt{pages} phụ thuộc \texttt{hooks} và \texttt{components}, \texttt{hooks} phụ thuộc \texttt{lib} và \texttt{store}, không có gói tầng dưới phụ thuộc ngược lên tầng trên.
 
 Hai chiều giao tiếp chính giữa frontend và backend là: (i) các request CRUD/nghiệp vụ qua \texttt{lib/axios.ts} (instance Axios duy nhất, có interceptor tự động đính kèm access token và làm mới token khi hết hạn); (ii) request callback từ VNPay tới \texttt{PaymentController}, không đi qua frontend.
 
@@ -120,6 +184,22 @@ Hình \ref{fig:erd} trình bày biểu đồ thực thể liên kết (ERD) củ
     \label{fig:erd}
 \end{figure}
 
+Các bảng chính trong cơ sở dữ liệu, tương ứng với các thực thể trên ERD, gồm:
+\begin{itemize}
+    \item \texttt{users}: tài khoản người dùng (học viên hoặc quản trị viên).
+    \item \texttt{refresh\_tokens}: refresh token đang hiệu lực của từng người dùng, phục vụ cơ chế xoay vòng token (Mục \ref{section:5.3}).
+    \item \texttt{user\_streaks}: chuỗi ngày học liên tục hiện tại và dài nhất của từng người dùng.
+    \item \texttt{levels}: cấp độ tiếng Nhật (N5--N1).
+    \item \texttt{courses}: khóa học, thuộc một cấp độ.
+    \item \texttt{lessons}: bài học (video), thuộc một khóa học.
+    \item \texttt{quizzes}: bài kiểm tra sau mỗi bài học -- quan hệ 1--1 với \texttt{lessons}.
+    \item \texttt{questions}: câu hỏi của một quiz, tổng quát hóa theo \texttt{question\_type} (Mục \ref{section:5.1}).
+    \item \texttt{quiz\_attempts}: lượt làm bài quiz của học viên, lưu điểm số và đáp án đã chọn.
+    \item \texttt{user\_lesson\_progress}: tiến độ xem video của từng học viên cho từng bài học.
+    \item \texttt{user\_course\_enrollments}: đăng ký khóa học của học viên.
+    \item \texttt{payments}: giao dịch thanh toán VNPay cho các khóa học có phí.
+\end{itemize}
+
 Một số điểm thiết kế em lưu ý đặc biệt khi xây dựng schema:
 
 \begin{itemize}
@@ -129,6 +209,232 @@ Một số điểm thiết kế em lưu ý đặc biệt khi xây dựng schema:
     \item \textbf{Ràng buộc xóa lan truyền (\texttt{ON DELETE CASCADE})}: khi một \texttt{lesson} hoặc \texttt{course} bị xóa, các bản ghi liên quan trong các bảng \texttt{quizzes}, \texttt{questions}, \texttt{quiz\_attempts}, \texttt{\seqsplit{user\_lesson\_progress}} và \texttt{\seqsplit{user\_course\_enrollments}} được tự động xóa theo, tránh dữ liệu mồ côi.
     \item \textbf{Quản lý phiên bản schema}: toàn bộ cấu trúc CSDL được em quản lý qua Flyway, cho phép áp dụng schema một cách có kiểm soát và tái lập trên nhiều môi trường. So với một schema quan hệ tối thiểu, lược đồ của hệ thống được em mở rộng thêm: bảng \texttt{\seqsplit{user\_course\_enrollments}} (đăng ký khóa học), cờ \texttt{hidden} và cột \texttt{price} trên \texttt{courses} (ẩn/hiện và định giá khóa học), bảng \texttt{payments} (lịch sử thanh toán), cột \texttt{question\_type} cùng hai cột đáp án riêng \texttt{correct\_answer\_text}/\texttt{correct\_order} trên \texttt{questions} (hỗ trợ ba dạng câu hỏi VOCABULARY/CONTENT/SEQUENCE với cách chấm điểm khác nhau -- xem Mục \ref{section:5.1}), và ràng buộc \texttt{ON DELETE CASCADE} đã nêu ở trên.
 \end{itemize}
+
+Bảng \ref{table:db-users} đến Bảng \ref{table:db-payments} mô tả chi tiết thuộc tính của từng bảng trong cơ sở dữ liệu.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+email & VARCHAR & Địa chỉ email, dùng để đăng nhập (duy nhất -- UNIQUE, không rỗng -- NN). \\ \hline
+password & VARCHAR & Mật khẩu đã băm bằng BCrypt (không rỗng -- NN). \\ \hline
+role & VARCHAR & Vai trò người dùng: \texttt{STUDENT} hoặc \texttt{ADMIN} (không rỗng -- NN). \\ \hline
+created\_at & TIMESTAMP & Thời điểm tạo tài khoản. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{users}}
+\label{table:db-users}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+user\_id & BIGINT & Khóa ngoại (FK tới \texttt{users.id}), không rỗng -- NN. \\ \hline
+token & VARCHAR & Chuỗi UUID ngẫu nhiên đại diện cho refresh token (duy nhất -- UNIQUE). \\ \hline
+expires\_at & TIMESTAMP & Thời điểm hết hạn (7 ngày kể từ lúc cấp). \\ \hline
+revoked & BOOLEAN & Đánh dấu token đã bị thu hồi hay chưa. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{refresh\_tokens}}
+\label{table:db-refresh-tokens}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+user\_id & BIGINT & Khóa chính \& khóa ngoại (PK, FK tới \texttt{users.id}) -- quan hệ 1--1 với \texttt{users}. \\ \hline
+current\_streak & INT & Số ngày học liên tục hiện tại. \\ \hline
+longest\_streak & INT & Số ngày học liên tục dài nhất từng đạt được. \\ \hline
+last\_activity\_at & TIMESTAMP & Thời điểm hoàn thành bài học gần nhất, dùng để tính streak còn hiệu lực hay không. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{user\_streaks}}
+\label{table:db-user-streaks}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+name & VARCHAR & Tên cấp độ (N5, N4, N3, N2, N1), không rỗng -- NN. \\ \hline
+description & VARCHAR & Mô tả ngắn về cấp độ. \\ \hline
+order\_index & INT & Thứ tự hiển thị (1 = N5 ... 5 = N1). \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{levels}}
+\label{table:db-levels}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+level\_id & BIGINT & Khóa ngoại (FK tới \texttt{levels.id}), không rỗng -- NN. \\ \hline
+title & VARCHAR & Tên khóa học, không rỗng -- NN. \\ \hline
+description & TEXT & Mô tả chi tiết khóa học. \\ \hline
+thumbnail\_url & VARCHAR & URL ảnh đại diện khóa học. \\ \hline
+order\_index & INT & Thứ tự hiển thị trong danh sách. \\ \hline
+hidden & BOOLEAN & Ẩn/hiện khỏi danh sách khám phá khóa học -- không ảnh hưởng học viên đã đăng ký. \\ \hline
+price & BIGINT & Giá tiền (VNĐ); \texttt{0} nghĩa là khóa học miễn phí. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{courses}}
+\label{table:db-courses}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+course\_id & BIGINT & Khóa ngoại (FK tới \texttt{courses.id}), không rỗng -- NN. \\ \hline
+title & VARCHAR & Tên bài học, không rỗng -- NN. \\ \hline
+video\_url & VARCHAR & URL video YouTube của bài giảng. \\ \hline
+duration & INT & Thời lượng video (giây), tự động đọc qua YouTube IFrame API. \\ \hline
+order\_index & INT & Thứ tự bài học trong khóa học. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{lessons}}
+\label{table:db-lessons}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+lesson\_id & BIGINT & Khóa ngoại (FK tới \texttt{lessons.id}, duy nhất -- UNIQUE) -- đảm bảo quan hệ 1--1 với \texttt{lessons}. \\ \hline
+pass\_score & INT & Ngưỡng điểm đạt (\%) -- 70/75/80 tùy cấp độ (Mục \ref{section:2.4}). \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{quizzes}}
+\label{table:db-quizzes}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+quiz\_id & BIGINT & Khóa ngoại (FK tới \texttt{quizzes.id}), không rỗng -- NN. \\ \hline
+content & TEXT & Nội dung câu hỏi, không rỗng -- NN. \\ \hline
+options & JSON & Mảng 4 chuỗi đáp án. \\ \hline
+correct\_option & INT & Chỉ số đáp án đúng (0--3) -- chỉ áp dụng cho loại \texttt{CONTENT}. \\ \hline
+correct\_answer\_text & VARCHAR & Đáp án văn bản đúng -- chỉ áp dụng cho loại \texttt{VOCABULARY}. \\ \hline
+correct\_order & JSON & Thứ tự đúng (mảng chỉ số 0--3) -- chỉ áp dụng cho loại \texttt{SEQUENCE}. \\ \hline
+order\_index & INT & Vị trí câu hỏi trong quiz (1--10). \\ \hline
+question\_type & VARCHAR & Loại câu hỏi: \texttt{VOCABULARY} / \texttt{CONTENT} / \texttt{SEQUENCE}. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{questions}}
+\label{table:db-questions}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+user\_id & BIGINT & Khóa ngoại (FK tới \texttt{users.id}), không rỗng -- NN. \\ \hline
+quiz\_id & BIGINT & Khóa ngoại (FK tới \texttt{quizzes.id}), không rỗng -- NN. \\ \hline
+score & INT & Điểm số phần trăm (0--100). \\ \hline
+answers & JSON & Ánh xạ \texttt{questionId} sang đáp án đã chọn, kiểu dữ liệu tùy \texttt{question\_type}. \\ \hline
+attempted\_at & TIMESTAMP & Thời điểm nộp bài. \\ \hline
+passed & BOOLEAN & Đạt hay không đạt so với \texttt{pass\_score} của quiz. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{quiz\_attempts}}
+\label{table:db-quiz-attempts}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+user\_id & BIGINT & Khóa chính \& khóa ngoại (PK, FK tới \texttt{users.id}). \\ \hline
+lesson\_id & BIGINT & Khóa chính \& khóa ngoại (PK, FK tới \texttt{lessons.id}) -- cùng \texttt{user\_id} tạo thành khóa chính phức hợp. \\ \hline
+completed & BOOLEAN & Đã xem hết video (hoặc đạt quiz) hay chưa. \\ \hline
+watched\_seconds & INT & Vị trí xem gần nhất (giây), dùng để phát tiếp (resume). \\ \hline
+updated\_at & TIMESTAMP & Thời điểm cập nhật tiến độ gần nhất. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{user\_lesson\_progress}}
+\label{table:db-user-lesson-progress}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+user\_id & BIGINT & Khóa chính \& khóa ngoại (PK, FK tới \texttt{users.id}). \\ \hline
+course\_id & BIGINT & Khóa chính \& khóa ngoại (PK, FK tới \texttt{courses.id}) -- cùng \texttt{user\_id} tạo thành khóa chính phức hợp. \\ \hline
+enrolled\_at & TIMESTAMP & Thời điểm đăng ký khóa học. \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{user\_course\_enrollments}}
+\label{table:db-user-course-enrollments}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|p{3.2cm}|p{2.4cm}|p{8cm}|}
+\hline
+\textbf{Thuộc tính} & \textbf{Kiểu dữ liệu} & \textbf{Mô tả} \\ \hline
+id & BIGINT & Khóa chính (PK), tự tăng. \\ \hline
+user\_id & BIGINT & Khóa ngoại (FK tới \texttt{users.id}), không rỗng -- NN. \\ \hline
+course\_id & BIGINT & Khóa ngoại (FK tới \texttt{courses.id}), không rỗng -- NN. \\ \hline
+amount & BIGINT & Số tiền giao dịch (VNĐ). \\ \hline
+vnp\_txn\_ref & VARCHAR & Mã giao dịch duy nhất (UNIQUE) do hệ thống sinh, gửi kèm URL thanh toán VNPay. \\ \hline
+vnp\_txn\_id & VARCHAR & Mã giao dịch phía VNPay trả về sau khi thanh toán. \\ \hline
+status & VARCHAR & Trạng thái: \texttt{PENDING} / \texttt{SUCCESS} / \texttt{FAILED}. \\ \hline
+created\_at & TIMESTAMP & Thời điểm tạo giao dịch. \\ \hline
+paid\_at & TIMESTAMP & Thời điểm xác nhận thanh toán thành công (có thể rỗng nếu chưa/không thành công). \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1}
+\caption{Mô tả bảng \texttt{payments}}
+\label{table:db-payments}
+\end{table}
 
 \section{Xây dựng ứng dụng}
 
@@ -159,8 +465,6 @@ CSS Framework & Tailwind CSS + shadcn/ui & 4.x \\ \hline
 HTTP client & Axios & 1.x \\ \hline
 Phát video & YouTube IFrame Player API & -- \\ \hline
 Thanh toán & VNPay Sandbox & -- \\ \hline
-Kiểm thử frontend & Vitest + Testing Library & 4.x \\ \hline
-Kiểm thử backend & JUnit 5 + Mockito (qua \texttt{spring-boot-starter-test}) & 5.x \\ \hline
 Container hóa môi trường dev & Docker Compose (MySQL) & -- \\ \hline
 \end{tabular}
 \renewcommand{\arraystretch}{1}
@@ -230,7 +534,7 @@ Phần này trình bày ảnh chụp màn hình của các chức năng chính t
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{Hinhve/screenshot-lesson-video.png}
-    \caption{Trang xem video bài học với YouTube custom player}
+    \caption{Trang xem video bài học với trình phát YouTube IFrame API}
     \label{fig:screenshot-lesson-video}
 \end{figure}
 
@@ -272,11 +576,9 @@ Phần này trình bày ảnh chụp màn hình của các chức năng chính t
 \section{Kiểm thử}
 \label{section:4.4}
 
-Em kiểm thử hệ thống theo hai hình thức bổ trợ nhau: kiểm thử tự động (Vitest cho các logic và luồng quan trọng phía frontend, JUnit 5 + Mockito cho logic chấm điểm quiz phía backend), và kiểm thử thủ công theo kịch bản cho các luồng nghiệp vụ cần dữ liệu thực và môi trường tích hợp đầy đủ (cơ sở dữ liệu, cổng thanh toán sandbox).
+Em kiểm thử hệ thống bằng phương pháp kiểm thử thủ công theo kịch bản, tập trung vào các luồng nghiệp vụ cần dữ liệu thực và môi trường tích hợp đầy đủ (cơ sở dữ liệu, cổng thanh toán sandbox) mà kiểm thử tự động khó mô phỏng chính xác.
 
-Bộ kiểm thử tự động phía frontend (77 trường hợp) gồm các trường hợp kiểm tra logic phát video (debounce lưu tiến độ, resume từ vị trí đã xem, không điều hướng lại khi xem lại bài đã hoàn thành), logic của quiz wizard (sắp xếp và nhóm câu hỏi theo loại, điều kiện đã trả lời đủ câu mới cho phép sang trang tiếp theo, tính điểm và xác định đạt/không đạt, đúng kiểu dữ liệu đáp án theo từng loại câu hỏi khi render trực tiếp các component \texttt{VocabularyStep}/\texttt{ContentStep}), và các hàm tiện ích dùng chung (định dạng ngày giờ, định dạng thời lượng video). Phía backend, em bổ sung 12 trường hợp kiểm thử tự động cho \texttt{QuizService}, tập trung vào logic chấm điểm riêng theo từng loại câu hỏi (so khớp văn bản cho VOCABULARY, so khớp chỉ số đáp án cho CONTENT, so khớp thứ tự cho SEQUENCE) và các trường hợp biên khi tính \texttt{passScore} (ví dụ: đúng 7/10 câu với ngưỡng 70\% phải đạt, đúng 6/10 câu phải không đạt). Toàn bộ các trường hợp này đều cho kết quả đạt khi em chạy lại bộ kiểm thử lần cuối trước khi hoàn thiện báo cáo.
-
-Đối với các luồng nghiệp vụ cần môi trường tích hợp đầy đủ, em kiểm thử thủ công trên hai chức năng quan trọng nhất: nộp bài quiz và đăng ký khóa học có phí qua VNPay. Bảng \ref{table:4.3} và Bảng \ref{table:4.4} trình bày các trường hợp kiểm thử tiêu biểu.
+Em kiểm thử thủ công trên hai chức năng quan trọng nhất: nộp bài quiz và đăng ký khóa học có phí qua VNPay. Bảng \ref{table:4.3} và Bảng \ref{table:4.4} trình bày các trường hợp kiểm thử tiêu biểu.
 
 \begin{table}[H]
 \centering

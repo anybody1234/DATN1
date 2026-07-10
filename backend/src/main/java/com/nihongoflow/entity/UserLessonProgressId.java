@@ -2,40 +2,18 @@ package com.nihongoflow.entity;
 
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Embeddable
+@Getter
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class UserLessonProgressId implements Serializable {
     private Long userId;
     private Long lessonId;
-
-    protected UserLessonProgressId() {
-    }
-
-    public UserLessonProgressId(Long userId, Long lessonId) {
-        this.userId = userId;
-        this.lessonId = lessonId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public Long getLessonId() {
-        return lessonId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof UserLessonProgressId that))
-            return false;
-        return Objects.equals(userId, that.userId) && Objects.equals(lessonId, that.lessonId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId, lessonId);
-    }
 }

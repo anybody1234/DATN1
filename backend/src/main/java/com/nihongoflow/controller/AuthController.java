@@ -10,6 +10,7 @@ import com.nihongoflow.dto.UserDto;
 import com.nihongoflow.entity.User;
 import com.nihongoflow.service.AuthService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -21,15 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
     private static final String REFRESH_COOKIE = "refreshToken";
     private final AuthService authService;
     private final AppCookieProperties cookieProperties;
-
-    public AuthController(AuthService authService, AppCookieProperties cookieProperties) {
-        this.authService = authService;
-        this.cookieProperties = cookieProperties;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {

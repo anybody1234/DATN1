@@ -2,12 +2,18 @@ package com.nihongoflow.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.NONE)
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -21,6 +27,7 @@ public class User {
     private UserRole role;
 
     @Column(nullable = false)
+    @Setter(AccessLevel.NONE)
     private Instant createdAt;
 
     @PrePersist
@@ -28,37 +35,5 @@ public class User {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 }

@@ -5,42 +5,39 @@ import {
   MockQuizCard,
   MockStreakCard,
 } from "@/features/landing/MockCards";
+import { useLevels } from "@/hooks/useCourse";
 
 const LEVELS = [
   {
     name: "N5",
     label: "Sơ cấp",
     desc: "Hiragana, Katakana, từ vựng cơ bản",
-    courses: 2,
   },
   {
     name: "N4",
     label: "Sơ trung cấp",
     desc: "Ngữ pháp mở rộng, hội thoại đơn giản",
-    courses: 2,
   },
   {
     name: "N3",
     label: "Trung cấp",
     desc: "Đọc hiểu, biểu đạt phức tạp",
-    courses: 2,
   },
   {
     name: "N2",
     label: "Trung cao cấp",
     desc: "Văn phong trang trọng, chuyên ngành",
-    courses: 2,
   },
   {
     name: "N1",
     label: "Cao cấp",
     desc: "Thành thạo toàn diện, bản địa hoá",
-    courses: 2,
   },
 ];
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { data: levels = [], isLoading: levelsLoading } = useLevels();
 
   return (
     <div className="overflow-x-hidden">
@@ -108,35 +105,6 @@ export function LandingPage() {
               Xem khoá học
             </button>
           </div>
-
-          {/* Stats */}
-          <div className="mt-12 flex items-center justify-center">
-            {[
-              { value: "5", label: "Cấp độ JLPT" },
-              { value: "10", label: "Khoá học" },
-              { value: "24", label: "Bài giảng" },
-            ].map(({ value, label }, i) => (
-              <div
-                key={label}
-                className="px-10 text-center"
-                style={
-                  i > 0
-                    ? { borderLeft: "1px solid rgba(255,255,255,0.12)" }
-                    : undefined
-                }
-              >
-                <div
-                  className="text-t1 font-bold"
-                  style={{ fontSize: 22, letterSpacing: "-0.04em" }}
-                >
-                  {value}
-                </div>
-                <div className="text-t3 mt-1" style={{ fontSize: 11 }}>
-                  {label}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -164,34 +132,42 @@ export function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            {LEVELS.map((lv) => (
-              <div
-                key={lv.name}
-                className="group cursor-pointer rounded-xl p-5 transition-all duration-200 hover:-translate-y-0.5"
-                style={{
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  background: "var(--s1)",
-                }}
-                onClick={() => navigate(`/khoa-hoc?level=${lv.name}`)}
-              >
+            {LEVELS.map((lv) => {
+              const courseCount = levels.find(
+                (l) => l.name === lv.name,
+              )?.courseCount;
+              return (
                 <div
-                  className="text-2xl font-bold mb-2"
-                  style={{ color: "var(--acc)" }}
+                  key={lv.name}
+                  className="group cursor-pointer rounded-xl p-5 transition-all duration-200 hover:-translate-y-0.5"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.07)",
+                    background: "var(--s1)",
+                  }}
+                  onClick={() => navigate(`/khoa-hoc?level=${lv.name}`)}
                 >
-                  {lv.name}
+                  <div
+                    className="text-2xl font-bold mb-2"
+                    style={{ color: "var(--acc)" }}
+                  >
+                    {lv.name}
+                  </div>
+                  <div className="text-t1 text-sm font-medium mb-1.5">
+                    {lv.label}
+                  </div>
+                  <div className="text-t3 text-xs leading-relaxed mb-3">
+                    {lv.desc}
+                  </div>
+                  {levelsLoading ? (
+                    <div className="h-3 w-16 rounded bg-b1 animate-pulse" />
+                  ) : (
+                    <div className="text-acc text-[11px] font-semibold">
+                      {courseCount ?? 0} khoá học
+                    </div>
+                  )}
                 </div>
-                <div className="text-t1 text-sm font-medium mb-1.5">
-                  {lv.label}
-                </div>
-                <div className="text-t3 text-xs leading-relaxed mb-3">
-                  {lv.desc}
-                </div>
-                <div className="text-t3 text-[11px]">
-                  <span className="text-t2 font-medium">{lv.courses}</span> khoá
-                  học
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

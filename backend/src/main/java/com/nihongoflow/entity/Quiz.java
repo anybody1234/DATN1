@@ -1,12 +1,18 @@
 package com.nihongoflow.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "quizzes")
+@Getter
+@Setter
 public class Quiz {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.NONE)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -15,24 +21,4 @@ public class Quiz {
 
     @Column(nullable = false)
     private int passScore;
-
-    public Long getId() {
-        return id;
-    }
-
-    public Lesson getLesson() {
-        return lesson;
-    }
-
-    public void setLesson(Lesson lesson) {
-        this.lesson = lesson;
-    }
-
-    public int getPassScore() {
-        return passScore;
-    }
-
-    public void setPassScore(int passScore) {
-        this.passScore = passScore;
-    }
 }

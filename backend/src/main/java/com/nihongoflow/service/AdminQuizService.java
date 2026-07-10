@@ -14,10 +14,12 @@ import com.nihongoflow.repository.QuizRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AdminQuizService {
 
     private record QuestionTemplate(int orderIndex, String questionType) {}
@@ -34,15 +36,6 @@ public class AdminQuizService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final LessonRepository lessonRepository;
-
-    public AdminQuizService(
-            QuizRepository quizRepository,
-            QuestionRepository questionRepository,
-            LessonRepository lessonRepository) {
-        this.quizRepository = quizRepository;
-        this.questionRepository = questionRepository;
-        this.lessonRepository = lessonRepository;
-    }
 
     @Transactional(readOnly = true)
     public AdminQuizDto getQuizByLesson(Long lessonId) {

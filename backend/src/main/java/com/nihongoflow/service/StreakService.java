@@ -9,21 +9,18 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class StreakService {
     private final UserStreakRepository streakRepository;
     private final UserRepository userRepository;
     // Streak tính theo ngày lịch Việt Nam — không phụ thuộc timezone server
     private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-
-    public StreakService(UserStreakRepository streakRepository, UserRepository userRepository) {
-        this.streakRepository = streakRepository;
-        this.userRepository = userRepository;
-    }
 
     @Transactional(readOnly = true)
     public UserStreakDto getStreak(User user) {
